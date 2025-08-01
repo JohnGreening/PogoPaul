@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Check for argument
+if [ -z "$1" ]; then
+  echo "Usage: build-next <sourcefile.asm>"
+  exit 1
+fi
+
+# Resolve full path
+SRC_FILE="$(realpath "$1")"
+SRC_DIR="$(dirname "$SRC_FILE")"
+BASE_NAME="$(basename "$SRC_FILE" .asm)"
+
+# Assemble with sjasmplus
+echo "Assembling $SRC_FILE..."
+sjasmplus "$SRC_FILE" --dirbol --lst="$SRC_DIR/$BASE_NAME.lst" --nologo
+
+# Check exit code
+if [ $? -eq 0 ]; then
+  echo "✅ Build successful"
+else
+  echo "❌ Build failed"
+fi
+
