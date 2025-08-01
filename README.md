@@ -6,7 +6,7 @@ Anyway since retiring I've taught myself assembler on the ZX Spectrum, my micro 
 
 The result is "Pogo Paul", a homage to Paul's work but with my own slant.
 
-Written entirely in Spectrum Next Z80 on the excellent ODIN assembler/compiler. Thanks Matt Davies !
+Written entirely in Spectrum Next Z80N
 
 Thanks to all those that have answered my daft questions on here and other forums and who have provided tutorials and the like. I would have given up ages ago without this help.
 
