@@ -2,7 +2,7 @@ device ZXSPECTRUMNEXT
 
 INCLUDE "myMacros.inc"
 INCLUDE "c.inc"
-
+INCLUDE "globals.inc"
 
 ; ----------------------------
 ; Game Initialization
@@ -110,7 +110,7 @@ balloonUpt
         LD IX, balloonSpr                   ; point to balloon data
 
 balloonUpt1
-        LD A, (IX +sprPat)                  ; get pattern
+        LD A, (IX +sBalloon.pattern)                  ; get pattern
         LD C, A                             ; save pattern
         CP 255                              ; check for finished marker
         RET Z                               ; exit if done
@@ -125,11 +125,11 @@ balloonUpt1
         JP (HL)                             ; jump to action required
 
 doBalloon
-        LD L, (IX +sprPopDelayL)            ; get the pop delay low byte
-        LD H, (IX +sprPopDelayH)            ; get the pop delay high byte
+        LD L, (IX +sBalloon.popDelayL)            ; get the pop delay low byte
+        LD H, (IX +sBalloon.popDelayH)            ; get the pop delay high byte
         DEC HL                              ; decrease count
-        LD (IX +sprPopDelayL), L            ; save low byte
-        LD (IX +sprPopDelayH), H            ; save high byte
+        LD (IX +sBalloon.popDelayL), L            ; save low byte
+        LD (IX +sBalloon.popDelayH), H            ; save high byte
         LD A, L                             ; is it zero now
         OR H
         JP NZ, moveBalloonRight             ; branch if timer >0
@@ -139,7 +139,7 @@ balloonPop
 ;
         LD A, C                             ; get the balloon pattern
         INC A                               ; add 1
-        LD (IX +sprPat), A                  ; save it
+        LD (IX +sBalloon.pattern), A                  ; save it
 
         LD A, C                             ; inspect original pattern
         CP blank
@@ -158,40 +158,40 @@ balloonPop
         ; so turn it into a skull unless the item is the key
         LD A, soundPop
         CALL playsound
-        LD A, (IX +sprNewSprite)
+        LD A, (IX +sBalloon.newSprite)
         CP key
         JR Z, popDone
         LD A, skull
-        LD (IX +sprNewSprite), A
+        LD (IX +sBalloon.newSprite), A
 
 popDone
         LD HL, 15                           ; set a little delay
-        LD (IX +sprPopDelayL), L            ; save low byte
-        LD (IX +sprPopDelayH), H            ; save high byte
+        LD (IX +sBalloon.popDelayL), L            ; save low byte
+        LD (IX +sBalloon.popDelayH), H            ; save high byte
         JP balloonEnd
 
 fullyPopped
 ; here balloon is fully popped
 ; we turn it into a skull, heart etc
-        LD A, (IX +sprNewSprite)            ; get new sprite value
-        LD (IX +sprPat), A                  ; make this the pattern
+        LD A, (IX +sBalloon.newSprite)            ; get new sprite value
+        LD (IX +sBalloon.pattern), A                  ; make this the pattern
 
         LD A, blank
-        LD (IX +sprNewSprite), A
+        LD (IX +sBalloon.newSprite), A
 
         ; since one balloon has now popped, can we create another
         LD A, (balloonNext)                 ; get next free balloon
         LD B, A                             ; save in B for later
         LD D, B                             ; calculate offset
-        LD E, balloonSprLen
+        LD E, sBalloon
         MUL D, E
         LD IY, balloonSpr
         ADD IY, DE
-        LD A, (IY +sprPat)                  ; get current Pattern
+        LD A, (IY +sBalloon.pattern)                  ; get current Pattern
         CP 255                              ; if it's 255, we're at end
         JP Z, balloonEnd
         LD A, balloon
-        LD (IY +sprPat), A
+        LD (IY +sBalloon.pattern), A
         LD A, B
         INC A
         LD (balloonNext), A
@@ -199,14 +199,14 @@ fullyPopped
 
 deadItem
         LD A, blank
-        LD (IX +sprPat), A
+        LD (IX +sBalloon.pattern), A
         JP balloonEnd
 
 moveBalloonRight
 ; move the balloon sprite right a bit
 ; and wrap to screen start if we are at the RHS
-        LD H, (IX +sprHighX)                ; get high X
-        LD L, (IX +sprLowX)                 ; get low X
+        LD H, (IX +sBalloon.highX)                ; get high X
+        LD L, (IX +sBalloon.lowX)                 ; get low X
 
 ; a pending balloon may decide to continue right
 ; therefore we need this entry point here
@@ -221,29 +221,29 @@ balloonR
         LD H, 0                             ; LHS of screen
         LD L, 0                             ; LHS of screen
 storeX
-        LD (IX +sprHighX), H                ; set new high X
-        LD (IX +sprLowX), L                 ; set new low X
+        LD (IX +sBalloon.highX), H                ; set new high X
+        LD (IX +sBalloon.lowX), L                 ; set new low X
 
 endBalloonRight
 ; here we adj how long the balloon is going
 ; to continue going up or down
-        LD A, (IX +sprDelay)                ; get delay
+        LD A, (IX +sBalloon.vDelay)                ; get delay
         INC A                               ; add 1
         AND 7                               ; limit 0-7
-        LD (IX +sprDelay), A                ; save it
+        LD (IX +sBalloon.vDelay), A                ; save it
         AND A                               ; is it 0
         JR NZ, balloonYCng1                 ; jump if Not
         CALL random
         AND 7
         OR 3
-        LD (IX +sprDelay), A
-        LD A, (IX +sprSwoop)                ; get up/down index
+        LD (IX +sBalloon.vDelay), A
+        LD A, (IX +sBalloon.swoop)                ; get up/down index
         INC A                               ; add 1
         AND %00011111                       ; limit 0-31
-        LD (IX +sprSwoop), A                ; save it
+        LD (IX +sBalloon.swoop), A                ; save it
 
 balloonYCng1
-        LD A, (IX +sprSwoop)                ; get up/down index again !
+        LD A, (IX +sBalloon.swoop)                ; get up/down index again !
         LD HL, balloonSwoop                 ; point to swooping data
         ADD HL, A                           ; add index
         LD A, (HL)                          ; get up/down value
@@ -254,26 +254,26 @@ balloonYCng1
         JP balloonEnd                       ; if originally 2, no up/down
 
 balloonDown
-        LD A, (IX +sprLowY)
+        LD A, (IX +sBalloon.lowY)
         INC A
         CP maxY
         JR C, clampMaxY1
         LD A, 16
-        LD (IX +sprSwoop), A
+        LD (IX +sBalloon.swoop), A
         LD A, maxY
 clampMaxY1
-        LD (IX +sprLowY), A
+        LD (IX +sBalloon.lowY), A
         JP balloonEnd
 balloonUp
-        LD A, (IX +sprLowY)
+        LD A, (IX +sBalloon.lowY)
         DEC A
         CP minY
         JR NC, clampMinY1
         LD A, 0
-        LD (IX +sprSwoop), A
+        LD (IX +sBalloon.swoop), A
         LD A, minY
 clampMinY1
-        LD (IX +sprLowY), A
+        LD (IX +sBalloon.lowY), A
         JP balloonEnd
 
 
@@ -286,35 +286,35 @@ skull1
         JR skullY
 skullX
         LD HL, (spriteX)                    ; get Paul's X coord
-        LD E, (IX +sprLowX)                 ; get Skulls X coord
-        LD D, (IX +sprHighX)
+        LD E, (IX +sBalloon.lowX)                 ; get Skulls X coord
+        LD D, (IX +sBalloon.highX)
         SBC HL, DE                          ; subtract Skull X from Paul's X
         JR C, SkullLeft                     ; Skull was greater, so move Left
         JR SkullRight                       ; otherwise move Left
 SkullLeft
         DEC DE
-        LD (IX +sprLowX), E
-        LD (IX +sprHighX), D
+        LD (IX +sBalloon.lowX), E
+        LD (IX +sBalloon.highX), D
         JP balloonEnd
 SkullRight
         INC DE
-        LD (IX +sprLowX), E
-        LD (IX +sprHighX), D
+        LD (IX +sBalloon.lowX), E
+        LD (IX +sBalloon.highX), D
         JP balloonEnd
 skullY
         LD HL, (spriteY)
-        LD E, (IX +sprLowY)
+        LD E, (IX +sBalloon.lowY)
         LD D, 0
         SBC HL, DE
         JR C, SkullUp
         JR SkullDown
 SkullUp
         DEC E
-        LD (IX +sprLowY), E
+        LD (IX +sBalloon.lowY), E
         JP balloonEnd
 SkullDown
         INC E
-        LD (IX +sprLowY), E
+        LD (IX +sBalloon.lowY), E
         JR balloonEnd
 
 toxic1
@@ -325,8 +325,8 @@ itemFalling
 ; is now falling to the ground
 ; ensure X is such that when landed, it can be collected
 ; i.e. >=24 <=280 (%00011000 - %100011000)
-        LD L, (IX +sprLowX)                 ; get the
-        LD H, (IX +sprHighX)                ; x co-ord
+        LD L, (IX +sBalloon.lowX)                 ; get the
+        LD H, (IX +sBalloon.highX)                ; x co-ord
         LD A, H                             ; get high byte
         AND A                               ; is HL > 255
         JR Z, p2                            ; branch if not
@@ -341,9 +341,9 @@ p2
         JR NC, p3                           ; branch if it is
         JP balloonR                         ; otherwise keep drifting right
 p3
-        LD E, (IX +sprLowY)
+        LD E, (IX +sBalloon.lowY)
         INC E
-        LD (IX +sprLowY), E
+        LD (IX +sBalloon.lowY), E
         LD A, E
         CP 23                               ; make sure we are below the titles
         JR C, balloonEnd
@@ -351,7 +351,7 @@ p3
         JR NC, balloonEnd
 
         CALL itemTileCollision
-        LD A, (IX +sprLandValue)
+        LD A, (IX +sBalloon.landValue)
         LD B, A
 
 ; here we keep moving down until we dont hit anything
@@ -366,21 +366,21 @@ landtest
         CP 0                                ; was the land test value 0
         JR NZ, landed                       ; if not, we've landed
         LD A, 31                            ; otherwise, set new seek value
-        LD (IX +sprLandValue), A
+        LD (IX +sBalloon.landValue), A
         JR balloonEnd
 
 landed
         DEC E
-        LD (IX +sprLowY), E
-        LD A, (IX +sprPat)
+        LD (IX +sBalloon.lowY), E
+        LD A, (IX +sBalloon.pattern)
         INC A
-        LD (IX +sprPat), A
+        LD (IX +sBalloon.pattern), A
         JR balloonEnd
 
 balloonEnd
         CALL showSP1
 
-        LD BC, balloonSprLen
+        LD BC, sBalloon
         ADD IX, BC
         JP balloonUpt1
 
@@ -511,11 +511,11 @@ showPaul0
         JP Z, paulFalling                   ; branch if so
 
 paulRising
-        DEC (IX +sprLowY)                   ; otherwise move Paul up
+        DEC (IX +sBalloon.lowY)                   ; otherwise move Paul up
         JR doLeftRight                      ; end of rise processing
 
 paulFalling
-        INC (IX +sprLowY)                   ; move Paul down
+        INC (IX +sBalloon.lowY)                   ; move Paul down
 
 doLeftRight
 ; so here we decide if Paul is allowed to move left/right
@@ -529,7 +529,7 @@ doLeftRight
         LD A, (leftRightDelay)              ; set L/R countdown default
         LD (leftRightCount), A              ; save it
 
-        LD A, (IX +sprDirH)                 ; get the horizontal movement
+        LD A, (IX +sBalloon.dirH)                 ; get the horizontal movement
         CP nothing                          ; is it 0
         JR Z, leftrightEnd                  ; 0 = up/down only
         CP left                             ; is it 1
@@ -557,7 +557,7 @@ leftrightEnd
 ;        LD A, (riseCnt)
 ;        CALL DispA
 ;        LD IY, tileMapData +957
-;        LD A, (IX +sprDirH)
+;        LD A, (IX +sBalloon.dirH)
 ;        CALL DispA
 ;        LD IY, tileMapData +997
 ;        LD A, (hitLind)
@@ -625,7 +625,7 @@ hitRising
 
 hitRising1
         CALL reverseX1                      ; reverse previous left/right
-        INC (IX +sprLowY)                   ; move Paul down
+        INC (IX +sBalloon.lowY)                   ; move Paul down
 
         LD A, 0                             ; Paul is now falling
         LD (riseCnt), A                     ; set it
@@ -635,7 +635,7 @@ hitRising1
         JP Z, paulFinish
 
         LD A, 0
-        LD (IX +sprDirH), A
+        LD (IX +sBalloon.dirH), A
         JP paulFinish
 
 
@@ -645,7 +645,7 @@ hitFalling
         LD B, A
         LD A, (hitRind)
         LD C, A
-        LD A, (IX +sprPat)
+        LD A, (IX +sBalloon.pattern)
         CP facingLeft
         JR Z, fallingLeft
         JR fallingRight
@@ -684,9 +684,9 @@ FRhitL
         JR FLEnd
 
 FLEnd
-        DEC (IX +sprLowY)
+        DEC (IX +sBalloon.lowY)
         LD A, nothing
-        LD (IX +sprDirH), A
+        LD (IX +sBalloon.dirH), A
         LD A, (hitind)
         CP 31
         JR Z, bounce
@@ -706,7 +706,7 @@ bounce
         LD A, soundBounce
         CALL playsound
 
-        DEC (IX +sprLowY)                   ; move Paul up
+        DEC (IX +sBalloon.lowY)                   ; move Paul up
 
         LD A, (strengthInd)                 ; get index into bounce table
         LD HL, bounceTable                  ; point to bounce table
@@ -746,17 +746,17 @@ killSkulls
         LD C, 0                             ; skull kill count
         LD B, A                             ; "balloons" to process
 ks0
-        LD A, (IY +sprPat)                  ; get pattern
+        LD A, (IY +sBalloon.pattern)                  ; get pattern
         CP skull                            ; was it a skull
         JR NZ, ks1                          ; branch if not, next to test
         INC A                               ; +1 to pattern -> explosion
-        LD (IY +sprPat), A                  ; set it
+        LD (IY +sBalloon.pattern), A                  ; set it
         LD HL, 15                           ; and a little pop delay
-        LD (IY +sprPopDelayH), H
-        LD (IY +sprPopDelayL), L
+        LD (IY +sBalloon.popDelayH), H
+        LD (IY +sBalloon.popDelayL), L
         INC C                               ; increase killed skulls count
 ks1
-        LD DE, balloonSprLen
+        LD DE, sBalloon
         ADD IY, DE
         DJNZ ks0
         POP IY
@@ -784,9 +784,9 @@ keyLeft
         JR NZ, keyRight
 
         LD A, facingLeft
-        LD (IX +sprPat), A
+        LD (IX +sBalloon.pattern), A
         LD A, left
-        LD (IX +sprDirH), A
+        LD (IX +sBalloon.dirH), A
 
 keyRight
         LD BC, $dffe                        ; keys Y U I O P
@@ -795,9 +795,9 @@ keyRight
         JR NZ, keyEnd
 
         LD A, facingRight
-        LD (IX +sprPat), A
+        LD (IX +sBalloon.pattern), A
         LD A, right
-        LD (IX +sprDirH), A
+        LD (IX +sBalloon.dirH), A
 
 keyEnd
         RET
@@ -885,24 +885,24 @@ showHealth:
 
 
 movePaulRight
-        LD L, (IX +sprLowX)                 ; add 1 to X coord
-        LD H, (IX +sprHighX)                ; i.e. move RIGHT
+        LD L, (IX +sBalloon.lowX)                 ; add 1 to X coord
+        LD H, (IX +sBalloon.highX)                ; i.e. move RIGHT
         INC HL
-        LD (IX +sprLowX), L
-        LD (IX +sprHighX), H
+        LD (IX +sBalloon.lowX), L
+        LD (IX +sBalloon.highX), H
         RET
 
 movePaulLeft
-        LD L, (IX +sprLowX)                 ; deduct 1 from X coord
-        LD H, (IX +sprHighX)                ; i.e. move LEFT
+        LD L, (IX +sBalloon.lowX)                 ; deduct 1 from X coord
+        LD H, (IX +sBalloon.highX)                ; i.e. move LEFT
         DEC HL
-        LD (IX +sprLowX), L
-        LD (IX +sprHighX), H
+        LD (IX +sBalloon.lowX), L
+        LD (IX +sBalloon.highX), H
         RET
 
 reverseX1
- ;       LD A, (IX +sprDirH)
-        LD A, (IX +sprPat)
+ ;       LD A, (IX +sBalloon.dirH)
+        LD A, (IX +sBalloon.pattern)
         CP facingLeft
  ;       CP left
         JR Z, movePaulRight
@@ -972,27 +972,27 @@ restartGame
 
 ; here we turn all skulls back into balloons
 restartGame1
-        LD A, (IX +sprPat)                  ; get balloon pattern
+        LD A, (IX +sBalloon.pattern)                  ; get balloon pattern
         CP 255                              ; are we at the end
         JR Z, commonInit                    ; branch if so
         CP skull                            ; is pattern a skull
         JR NZ, restartGame2                 ; branch over if not
         LD A, balloon                       ; change skull back to balloon
-        LD (IX +sprPat), A                  ; - set pattern
+        LD (IX +sBalloon.pattern), A                  ; - set pattern
         LD HL, 0                            ;
-        LD (IX +sprLowX), L                 ; - set X coord as lhs
-        LD (IX +sprHighX), H                ;
+        LD (IX +sBalloon.lowX), L                 ; - set X coord as lhs
+        LD (IX +sBalloon.highX), H                ;
 restartGame2
-        LD A, (IX +sprIndex)                ; - set pop delay
+        LD A, (IX +sBalloon.index)                ; - set pop delay
         LD C, A
         LD A, 255
-        LD (IX +sprPopDelayL), A
+        LD (IX +sBalloon.popDelayL), A
         LD A, C
         ADD 2
         SLA A
-        LD (IX +sprPopDelayH), A
+        LD (IX +sBalloon.popDelayH), A
 
-        LD DE, balloonSprLen
+        LD DE, sBalloon
         ADD IX, DE
         JR restartGame1
 
@@ -1025,9 +1025,9 @@ paulInit
         ; initialise Paul with starting data
         LD IX, manSprite
         LD A, facingRight
-        LD (IX +sprPat), A
+        LD (IX +sBalloon.pattern), A
         LD A, nothing
-        LD (IX +sprDirH), A
+        LD (IX +sBalloon.dirH), A
         LD A, 1
         LD (strengthInd), A
         LD A,18
@@ -1093,12 +1093,12 @@ createLevel
         LD IX, manSprite                    ; ready to set initial Paul data
         LD L, (IY +5)                       ; X coord
         LD H, (IY +6)
-        LD (IX +sprLowX), L
-        LD (IX +sprHighX), H
+        LD (IX +sBalloon.lowX), L
+        LD (IX +sBalloon.highX), H
         LD L, (IY +7)                       ; Y coord
         LD H, (IY +8)
-        LD (IX +sprLowY), L
-        LD (IX +sprHighY), H
+        LD (IX +sBalloon.lowY), L
+        LD (IX +sBalloon.highY), H
 
         CALL createTileMap
         RET
@@ -1236,17 +1236,17 @@ showTitles
         CALL showKey
 
         LD IX, balloonTemp
-        LD (IX +sprIndex), 52
-        LD (IX +sprPat), dynamite
-        LD (IX +sprLowX), 32
-        LD (IX +sprHighX), 0
-        LD (IX +sprLowY), 224
+        LD (IX +sBalloon.index), 52
+        LD (IX +sBalloon.pattern), dynamite
+        LD (IX +sBalloon.lowX), 32
+        LD (IX +sBalloon.highX), 0
+        LD (IX +sBalloon.lowY), 224
         CALL showSP1
-        LD (IX +sprIndex), 53
-        LD (IX +sprPat), key
-        LD (IX +sprLowX), 56
-        LD (IX +sprHighX), 0
-        LD (IX +sprLowY), 224
+        LD (IX +sBalloon.index), 53
+        LD (IX +sBalloon.pattern), key
+        LD (IX +sBalloon.lowX), 56
+        LD (IX +sBalloon.highX), 0
+        LD (IX +sBalloon.lowY), 224
         CALL showSP1
 
         RET
@@ -1369,17 +1369,17 @@ instructions
         displayText tInst3
 
         LD IX, balloonTemp
-        LD (IX +sprIndex), 52
-        LD (IX +sprPat), 8
-        LD (IX +sprLowX), 208
-        LD (IX +sprHighX), 0
-        LD (IX +sprLowY), 8
+        LD (IX +sBalloon.index), 52
+        LD (IX +sBalloon.pattern), 8
+        LD (IX +sBalloon.lowX), 208
+        LD (IX +sBalloon.highX), 0
+        LD (IX +sBalloon.lowY), 8
         CALL showSP1
-        LD (IX +sprIndex), 53
-        LD (IX +sprPat), 8
-        LD (IX +sprLowX), 232
-        LD (IX +sprHighX), 0
-        LD (IX +sprLowY), 24
+        LD (IX +sBalloon.index), 53
+        LD (IX +sBalloon.pattern), 8
+        LD (IX +sBalloon.lowX), 232
+        LD (IX +sBalloon.highX), 0
+        LD (IX +sBalloon.lowY), 24
         CALL showSP1
 
         LD IX, manSprite
@@ -1388,7 +1388,7 @@ instructions
         LD A, 18
         LD (riseCnt), A
         LD A, nothing
-        LD (IX +sprDirH), A
+        LD (IX +sBalloon.dirH), A
         CALL showPaul1
 
         RET
@@ -1693,16 +1693,16 @@ IM2Tab:
 
 
 showSP
-        LD A, (IX +sprIndex)    ; get the sprite index
+        LD A, (IX +sBalloon.index)    ; get the sprite index
         NEXTREG $34, A          ; set sprite to activate
 
-        LD A, (IX +sprLowX)     ; get sprite X lsb
+        LD A, (IX +sBalloon.lowX)     ; get sprite X lsb
         NEXTREG $35, A          ; set attr byte 0 of port $0057
 
-        LD A, (IX +sprLowY)     ; get sprite Y lsb
+        LD A, (IX +sBalloon.lowY)     ; get sprite Y lsb
         NEXTREG $36, A          ; set attr byte 1 of port $0057
 
-        LD A, (IX +sprHighX)    ; get sprite X msb
+        LD A, (IX +sBalloon.highX)    ; get sprite X msb
         AND 1                   ; only need bit 0 of X msb
         NEXTREG $37, A          ; bits 7-4 palette offset
                                 ;        3 1=enable X mirroring
@@ -1710,7 +1710,7 @@ showSP
                                 ;        1 1=rotate 90 clockwise
                                 ;        0 msb of X
                                 ; this is attr byte 2 of port $0057
-        LD A, (IX +sprPat)      ; get pattern index to use
+        LD A, (IX +sBalloon.pattern)      ; get pattern index to use
         OR %11000000            ;
 ;        OR %10000000            ;
 
@@ -1727,24 +1727,24 @@ showSP
         RET
 
 showSP1
-        LD A, (IX +sprIndex)    ; get the sprite index
+        LD A, (IX +sBalloon.index)    ; get the sprite index
         NEXTREG $34, A          ; set sprite to activate
-        LD A, (IX +sprLowX)     ; get sprite X lsb
+        LD A, (IX +sBalloon.lowX)     ; get sprite X lsb
         NEXTREG $35, A          ; set attr byte 0 of port $0057
-        LD A, (IX +sprLowY)     ; get sprite Y lsb
+        LD A, (IX +sBalloon.lowY)     ; get sprite Y lsb
         NEXTREG $36, A          ; set attr byte 1 of port $0057
-        LD A, (IX +sprHighX)    ; get sprite X msb
+        LD A, (IX +sBalloon.highX)    ; get sprite X msb
         AND 1                   ; only need bit 0 of X msb
         NEXTREG $37, A          ; bits 7-4 palette offset
 
-        LD A, (IX +sprPat)      ; get pattern index to use
+        LD A, (IX +sBalloon.pattern)      ; get pattern index to use
 
         OR %10000000            ;
         NEXTREG $38, A          ; bits 7 1=make sprite visible
         RET
 
 showManRels
-        LD A, (IX +sprIndex)    ; set first RELATIVE sprite
+        LD A, (IX +sBalloon.index)    ; set first RELATIVE sprite
         INC A
         NEXTREG $34, A          ; set sprite to activate
 
@@ -1766,60 +1766,6 @@ showManRels
         RET
 
 
-sprIndex       EQU 0
-sprLowX        EQU 1
-sprHighX       EQU 2
-sprLowY        EQU 3
-sprHighY       EQU 4
-sprDelay       EQU 5
-sprSwoop       EQU 6
-sprPopDelayL   EQU 7
-sprPopDelayH   EQU 8
-sprNewSprite   EQU 9
-sprDirV        EQU 10
-sprLandValue   EQU 10
-sprDirH        EQU 11
-sprPat         EQU 12
-
-manSprite      DB 50
-spriteX        DW 88
-spriteY        DW 200
-spriteTX       DW 48
-spriteTY       DW 192
-spriteO        DB 0
-spriteDirV     DB 0
-spriteDirH     DB 0
-manPat         DB 0
-
-toxic          EQU 33
-skull          EQU 4
-balloon        EQU 8
-blank          EQU 32
-heart          EQU 12
-apple          EQU 16
-key            EQU 20
-points         EQU 24
-dynamite       EQU 28
-
-balloonSprLen  EQU 13                       ; balloon record length
-balloonMaxCnt  EQU 21                       ; max balloons and room allocated
-balloonSprCnt  DB 0                         ; balloon count remaining for level
-maxOnScreen    DB 0                         ; max allowed on screen at a time
-balloonNext    DB 0                         ; next free balloon
-
-balloonTemp    DEFS balloonSprLen
-balloonSpr     DEFS balloonSprLen * balloonMaxCnt
-; 00 - 00 = this is the index for the sprite system 0 - 99
-; 01 - 02 = X coord
-; 03 - 04 = Y coord
-; 05 - 05 = delay - used by balloon sprite to delay up/down movement
-; 06 - 06 = swoop - used by balloon sprite, index into array to decide up/down
-; 07 - 08 = pop delay - used by balloon sprite
-; 09 - 09 = new sprite pattern IF popped by Paul
-; 10 - 10 = direction Vertical (Paul)     land seek value (balloon)
-; 11 - 11 = direction Horizontal (Paul)
-; 12 - 12 = sprite pattern
-
 setupBalloon
              LD IX, balloonSpr              ; point to balloon data
              LD A, (balloonSprCnt)
@@ -1827,13 +1773,13 @@ setupBalloon
              LD C, 0
 setupBalloon1
              CALL createBalloon
-             LD DE, balloonSprLen
+             LD DE, sBalloon
              ADD IX, DE
              INC C
              DJNZ setupBalloon1
 
              LD A, 255
-             LD (IX +sprPat), A
+             LD (IX +sBalloon.pattern), A
              LD A, (maxOnScreen)
              INC A
              LD (balloonNext), A
@@ -1841,29 +1787,29 @@ setupBalloon1
 
 createBalloon
              LD A, C                        ; get sprite index
-             LD (IX +sprIndex), A           ; set in balloon data
+             LD (IX +sBalloon.index), A           ; set in balloon data
 
              CALL randomY                   ; get a random Y coord in A
-             LD (IX +sprLowY), A            ; set in balloon data
+             LD (IX +sBalloon.lowY), A            ; set in balloon data
              LD A, 0                        ; set the high Y coord byte to 0
-             LD (IX +sprHighY), A           ; set in balloon data
+             LD (IX +sBalloon.highY), A           ; set in balloon data
 
              CALL random                    ; get a random number in A
              AND %00011111                  ; limit to 0-31
-             LD (IX +sprSwoop), A           ; set in balloon data
+             LD (IX +sBalloon.swoop), A           ; set in balloon data
 
              ; this determines how long it will take
              ; before the balloon auto pops
              ; and turns into a skull
              LD A, 255                      ; initialise low byte pop delay
-             LD (IX +sprPopDelayL), A       ; set it
+             LD (IX +sBalloon.popDelayL), A       ; set it
              LD A, C                        ; initialise high byte pop delay
              ADD 2                          ; use balloon index + 1
              SLA A
-             LD (IX +sprPopDelayH), A       ; set it
+             LD (IX +sBalloon.popDelayH), A       ; set it
 
              LD A, 0                        ;
-             LD (IX +sprLandValue), A
+             LD (IX +sBalloon.landValue), A
 
              LD A, (maxOnScreen)
              CP B
@@ -1871,19 +1817,19 @@ createBalloon
 
 onScreen
              LD A, balloon                  ; on screen, so pattern is balloon
-             LD (IX +sprPat), A
+             LD (IX +sBalloon.pattern), A
 
              CALL randomX                   ; get a random X coord in HL
-             LD (IX +sprLowX), L            ; set in balloon data
-             LD (IX +sprHighX), H           ; set in balloon data
+             LD (IX +sBalloon.lowX), L            ; set in balloon data
+             LD (IX +sBalloon.highX), H           ; set in balloon data
              JR setupEnd
 
 offScreen
              LD A, blank                    ; off screen, so pattern is blank
-             LD (IX +sprPat), A
+             LD (IX +sBalloon.pattern), A
              LD HL, 0                       ; set X as 0
-             LD (IX +sprLowX), L            ; set in balloon data
-             LD (IX +sprHighX), H           ; set in balloon data
+             LD (IX +sBalloon.lowX), L            ; set in balloon data
+             LD (IX +sBalloon.highX), H           ; set in balloon data
              JR setupEnd
 
 setupEnd
@@ -1903,7 +1849,7 @@ assignItem1
         LD HL, items
         ADD HL, A
         LD A, (HL)
-        LD (IX +sprNewSprite), A       ; may spawn into
+        LD (IX +sBalloon.newSprite), A       ; may spawn into
 
         RET
 assignKey
@@ -1911,7 +1857,7 @@ assignKey
         AND A
         JR NZ, assignItem1
         LD A, key
-        LD (IX +sprNewSprite), A       ; may spawn into
+        LD (IX +sBalloon.newSprite), A       ; may spawn into
 
         RET
 
@@ -2362,7 +2308,7 @@ paulTileCollision
 testPaulHit
         ; "logically" move Sprite down over the map
         ; depending on Y pixel co-ord, i.e. how far down into the next char
-        LD A, (IX +sprLowY)             ; get the Y pixel coord
+        LD A, (IX +sBalloon.lowY)             ; get the Y pixel coord
         AND %00000111                   ; mask to get portion into next char
         LD D, A                         ; we then multiply by 3 because
         LD E, 3                         ; of starting at the RHS of the
@@ -2371,11 +2317,11 @@ testPaulHit
         LD HL, tileBmpMap +2            ; point to RHS of the map
         ADD HL, DE                      ; move down DE pixels
 
-        LD A, (IX +sprLowX)             ; now get the X pixel coord
+        LD A, (IX +sBalloon.lowX)             ; now get the X pixel coord
         AND %00000111                   ; similarly mask of 0-7
         LD B, A                         ; how many pixels into next char across
 
-        LD A, (IX +sprPat)              ; get Sprite patten
+        LD A, (IX +sBalloon.pattern)              ; get Sprite patten
         CP 0                            ; is it Paul facing right?
         JR Z, testHita                  ; jump if so to facing right routine
         JR   testHitb                  ; jump to facing left routine
@@ -2448,7 +2394,7 @@ itemTileCollision
 
         ; "logically" move Sprite down over the map
         ; depending on Y pixel co-ord, i.e. how far down into the next char
-        LD A, (IX +sprLowY)             ; get the Y pixel coord
+        LD A, (IX +sBalloon.lowY)             ; get the Y pixel coord
         AND %00000111                   ; mask to get portion into next char
         LD D, A                         ; we then multiply by 3 because
         LD E, 3                         ; of starting at the RHS of the
@@ -2457,11 +2403,11 @@ itemTileCollision
         LD HL, tileBmpMap +47           ; point to RHS of the map
         ADD HL, DE                      ; move down DE pixels
 
-        LD A, (IX +sprLowX)             ; now get the X pixel coord
+        LD A, (IX +sBalloon.lowX)             ; now get the X pixel coord
         AND %00000111                   ; similarly mask of 0-7
         LD B, A                         ; how many pixels into next char across
 
-        LD A, (IX +sprPat)
+        LD A, (IX +sBalloon.pattern)
         CP heart
         JR Z, heartCollision
         CP apple
@@ -2635,13 +2581,13 @@ build3x5
 ; build a 3x5 bitmap of tilemap data where sprite currently is
 ; IX = sprite in question
 
-        LD E, (IX +sprLowX)                 ; get X char coord
-        LD D, (IX +sprHighX)                ; i.e. X pixel / 8
+        LD E, (IX +sBalloon.lowX)                 ; get X char coord
+        LD D, (IX +sBalloon.highX)                ; i.e. X pixel / 8
         LD B, 3
         BSRA DE,B
         LD B, E                             ; B = X pixel / 8
 
-        LD A, (IX +sprLowY)                 ; get Y char coord
+        LD A, (IX +sBalloon.lowY)                 ; get Y char coord
         SRL A                               ; i.e. Y pixel / 8
         SRL A
         SRL A                               ; A = Y pixel / 8
@@ -2793,7 +2739,7 @@ nib21
 chkCollide
 ; get Paul's 1bit bitmap depending on his direction
         LD IX, manSprite
-        LD A, (IX +sprPat)
+        LD A, (IX +sBalloon.pattern)
         AND A
         JR Z, cMBM1
         JR cMBM2
@@ -2818,7 +2764,7 @@ chkSprite
         LD A, 0
         LD (collisionInd), A
 
-        LD A, (IX +sprPat)
+        LD A, (IX +sBalloon.pattern)
         CP 255
         RET Z
 
@@ -2829,7 +2775,7 @@ chkSprite
         LD A, (collisionInd)
         AND A
         RET NZ
-        LD DE, balloonSprLen
+        LD DE, sBalloon
         ADD IX, DE
         JR chkSprite
 
@@ -2953,13 +2899,13 @@ itemCollideCommon
         CALL playsound
         LD IY, (collisionInx)
         LD A, blank
-        LD (IY +sprNewSprite), A
+        LD (IY +sBalloon.newSprite), A
 itemHitCommon
-        LD (IY +sprPat), A
+        LD (IY +sBalloon.pattern), A
         LD A, 0
-        LD (IY +sprPopDelayH), A
+        LD (IY +sBalloon.popDelayH), A
         LD A, 15
-        LD (IY +sprPopDelayL), A
+        LD (IY +sBalloon.popDelayL), A
         AND A
         RET
 
@@ -2971,7 +2917,7 @@ CS1
         LD (collisionInx), IX               ; and the balloon in question
 doYDiff
         LD A, (spriteY)                     ; get Paul's Y coord
-        LD B, (IX +sprLowY)                 ; get Balloon Y coord
+        LD B, (IX +sBalloon.lowY)                 ; get Balloon Y coord
         SUB B                               ; A= Paul Y - Balloon Y
         JR C, spriteBelowPaul               ; if carry BalloonY > Paul Y
 
@@ -3023,8 +2969,8 @@ spriteBelowPaul
 
 doXDiff
         LD HL, (spriteX)
-        LD E, (IX +sprLowX)
-        LD D, (IX +sprHighX)
+        LD E, (IX +sBalloon.lowX)
+        LD D, (IX +sBalloon.highX)
         SBC HL, DE
         BIT 7, H
         JR Z, balloonLeftOfPaul
