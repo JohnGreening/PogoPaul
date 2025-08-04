@@ -4118,235 +4118,218 @@ mr1
         LD (framePointer), HL               ; and save in framePointer
 
 playNotes
-        ; setup for AY2
+        ld c, AYPortC
+
+        ; -------------------- AY2 --------------------
         LD A, 254
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
 
-        ; AY2 tone A
+        ; Tone A
         LD A, 0
-        LD BC, AYSelect
         OUT (C), A
         LD A, (DE)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
         LD A, 1
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
         LD A, (DE)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
-        ; AY2 volume A
+        ; Volume A
         LD A, 8
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
-
-        LD A, (DE)                          ; get volume it derives mixer
-        AND %00000001                       ; volume 0/15, mask off for channel
-        LD H, A                             ; save in H
-
-        LD A, (volume)                      ; get our preset volume
-        INC DE                              ; mixer will override if not reqd
-        LD BC, AYrw
-        OUT (C), A
-
-        ; AY2 tone B
-        LD A, 2
-        LD BC, AYSelect
-        OUT (C), A
-        LD A, (DE)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        LD A, 3
-        LD BC, AYSelect
-        OUT (C), A
-        LD A, (DE)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        ; AY2 volume B
-        LD A, 9
-        LD BC, AYSelect
-        OUT (C), A
-
-        LD A, (DE)
-        AND %00000010
-        OR H
-        LD H, A
-
-        LD A, (volume)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        ; AY2 tone C
-        LD A, 4
-        LD BC, AYSelect
-        OUT (C), A
-        LD A, (DE)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        LD A, 5
-        LD BC, AYSelect
-        OUT (C), A
-        LD A, (DE)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        ; AY2 volume C
-        LD A, 10
-        LD BC, AYSelect
-        OUT (C), A
-
-        LD A, (DE)
-        AND %00000100
-        OR H
-        LD H, A
-
-        LD A, (volume)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        ; mixer AY2
-        LD A, 7
-        LD BC, AYSelect
-        OUT (C), A
-
-        LD A, H                             ; get mixer value - 00000111
-        XOR %11111111                       ; reverse and set
-        LD BC, AYrw
-        OUT (C), A
-
-        ; setup for AY3
-        LD A, 253
-        LD BC, AYSelect
-        OUT (C), A
-
-        ; AY3 tone A
-        LD A, 0
-        LD BC, AYSelect
-        OUT (C), A
-        LD A, (DE)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        LD A, 1
-        LD BC, AYSelect
-        OUT (C), A
-        LD A, (DE)
-        INC DE
-        LD BC, AYrw
-        OUT (C), A
-
-        ; AY3 volume A
-        LD A, 8
-        LD BC, AYSelect
-        OUT (C), A
-
         LD A, (DE)
         AND %00000001
         LD H, A
-
         LD A, (volume)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
-        ; AY3 tone B
+        ; Tone B
         LD A, 2
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
         LD A, (DE)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
         LD A, 3
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
         LD A, (DE)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
-        ; AY3 volume B
+        ; Volume B
         LD A, 9
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
-
         LD A, (DE)
         AND %00000010
         OR H
         LD H, A
-
         LD A, (volume)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
-        ; AY3 tone C
+        ; Tone C
         LD A, 4
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
         LD A, (DE)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
         LD A, 5
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
         LD A, (DE)
         INC DE
-        LD BC, AYrw
+        LD B, AYPortWriteB
         OUT (C), A
 
-        ; AY3 volume C
+        ; Volume C
         LD A, 10
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
-
         LD A, (DE)
         AND %00000100
         OR H
         LD H, A
-
         LD A, (volume)
-        LD BC, AYrw
+        INC DE
+        LD B, AYPortWriteB
         OUT (C), A
 
-        ; mixer AY3
+        ; Mixer
         LD A, 7
-        LD BC, AYSelect
+        LD B, AYPortSelectB
         OUT (C), A
-
         LD A, H
         XOR %11111111
+        LD B, AYPortWriteB
+        OUT (C), A
 
-        LD BC, AYrw
+        ; -------------------- AY3 --------------------
+        LD A, 253
+        LD B, AYPortSelectB
+        OUT (C), A
+
+        ; Tone A
+        LD A, 0
+        OUT (C), A
+        LD A, (DE)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        LD A, 1
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        ; Volume A
+        LD A, 8
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        AND %00000001
+        LD H, A
+        LD A, (volume)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        ; Tone B
+        LD A, 2
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        LD A, 3
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        ; Volume B
+        LD A, 9
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        AND %00000010
+        OR H
+        LD H, A
+        LD A, (volume)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        ; Tone C
+        LD A, 4
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        LD A, 5
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        INC DE
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        ; Volume C
+        LD A, 10
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, (DE)
+        AND %00000100
+        OR H
+        LD H, A
+        LD A, (volume)
+        LD B, AYPortWriteB
+        OUT (C), A
+
+        ; Mixer
+        LD A, 7
+        LD B, AYPortSelectB
+        OUT (C), A
+        LD A, H
+        XOR %11111111
+        LD B, AYPortWriteB
         OUT (C), A
 
 melodyEnd
 
-
-AYSelect EQU $FFFD
-AYrw     EQU $bffd
-
-
-
-
+AYSelect       EQU $FFFD
+AYrw           EQU $bffd
+AYPortC        EQU $FD      ; Port low byte, stays in C
+AYPortSelectB  EQU $FF      ; B value for AYSelect port ($FFFD)
+AYPortWriteB   EQU $BF      ; B value for AYrw port ($BFFD)
 
         POP HL
         POP DE
