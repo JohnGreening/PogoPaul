@@ -3902,121 +3902,122 @@ im2Routine
 ; push/pop are in main program
 
 
-; select AY1
+        LD C, $FD              ; shared port for AY chip access
 
+; select AY1
+        LD B, $FF              ; AYSelect
         LD A, %11111111
-        LD BC, AYSelect
         OUT (C), A
 
 ; get the Ch1 tone value
 ; apply delta
         LD HL, (Ch1Pitch)
-        LD BC, (Ch1PitchD)
-        ADD HL, BC
+        LD DE, (Ch1PitchD)
+        ADD HL, DE
         LD (Ch1Pitch), HL
 
-; write Ch1 tone to Ay chip
-        LD BC, AYSelect
+; write Ch1 tone to AY chip
+        LD B, $FF              ; AYSelect
         LD A, 0
         OUT (C), A
-        LD BC, AYrw
+        LD B, $BF              ; AYrw
         OUT (C), L
 
-        LD BC, AYSelect
+        LD B, $FF
         LD A, 1
         OUT (C), A
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), H
 
 ; get the Ch1 volume value
 ; apply delta
         LD HL, (Ch1Volume)
-        LD BC, (Ch1VolumeD)
-        ADD HL, BC
+        LD DE, (Ch1VolumeD)
+        ADD HL, DE
         LD (Ch1Volume), HL
 
         LD A, H
         AND 15
 
 ; write Ch1 volume to AY chip
-        LD BC, AYSelect
+        LD B, $FF
         LD H, 8
         OUT (C), H
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), A
 
 ; get the Ch2 tone value
 ; apply delta
         LD HL, (Ch2Pitch)
-        LD BC, (Ch2PitchD)
-        ADD HL, BC
+        LD DE, (Ch2PitchD)
+        ADD HL, DE
         LD (Ch2Pitch), HL
 
-; write Ch2 tone to Ay chip
-        LD BC, AYSelect
+; write Ch2 tone to AY chip
+        LD B, $FF
         LD A, 2
         OUT (C), A
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), L
 
-        LD BC, AYSelect
+        LD B, $FF
         LD A, 3
         OUT (C), A
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), H
 
 ; get the Ch2 volume value
 ; apply delta
         LD HL, (Ch2Volume)
-        LD BC, (Ch2VolumeD)
-        ADD HL, BC
+        LD DE, (Ch2VolumeD)
+        ADD HL, DE
         LD (Ch2Volume), HL
 
         LD A, H
         AND 15
 
 ; write Ch2 volume to AY chip
-        LD BC, AYSelect
+        LD B, $FF
         LD H, 9
         OUT (C), H
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), A
 
 ; get the Ch3 tone value
 ; apply delta
         LD HL, (Ch3Pitch)
-        LD BC, (Ch3PitchD)
-        ADD HL, BC
+        LD DE, (Ch3PitchD)
+        ADD HL, DE
         LD (Ch3Pitch), HL
 
-; write Ch3 tone to Ay chip
-        LD BC, AYSelect
+; write Ch3 tone to AY chip
+        LD B, $FF
         LD A, 4
         OUT (C), A
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), L
 
-        LD BC, AYSelect
+        LD B, $FF
         LD A, 5
         OUT (C), A
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), H
 
 ; get the Ch3 volume value
 ; apply delta
         LD HL, (Ch3Volume)
-        LD BC, (Ch3VolumeD)
-        ADD HL, BC
+        LD DE, (Ch3VolumeD)
+        ADD HL, DE
         LD (Ch3Volume), HL
 
         LD A, H
         AND 15
 
 ; write Ch3 volume to AY chip
-        LD BC, AYSelect
+        LD B, $FF
         LD H, 10
         OUT (C), H
-        LD BC, AYrw
+        LD B, $BF
         OUT (C), A
 
 ; get the Ch1 flags
@@ -4089,8 +4090,7 @@ melodyRoutine
         LD A, (frameCount)                  ; pick up remaining note time
         DEC A                               ; decrease by 1 frame
         LD (frameCount), A                  ; save it back
-        AND A                               ; is it zero?
-        JP NZ, melodyEnd                    ; branch to end if not
+        JP NZ, melodyEnd                    ; branch to end if not zero
 
         ; timer expired, so pick up next note to play
         ; - first set timer for this new note
