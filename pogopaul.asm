@@ -3,7 +3,9 @@ device ZXSPECTRUMNEXT
 INCLUDE "c.inc"
 
 
-
+; ----------------------------
+; Game Initialization
+; ----------------------------
 MAINPROG
 ; this stuff is only called ONCE
 ;        NEXTREG $7, 2                       ; set speed to 14mhz
@@ -19,58 +21,81 @@ MAINPROG
         CALL buildbmp                       ; build 1bit bitmaps for collision
         CALL convertChars                   ; generate char tiles (86-127)
 
+
+; ----------------------------
 ; main game start
-MP2
-        CALL newGame                        ; game start, all lives lost
-MP1
+; ----------------------------
+GameStart:
+        CALL newGame                ; game start from scratch
+
+RestartLevel:
         CALL restartGame
-loop
+
+; ----------------------------
+; Main Game Loop
+; ----------------------------
+MainLoop:
         CALL showPaul
-        JR C, paulDead
+        JR C, HandleDeath
 
         CALL balloonUpt
 
         CALL showPaul
-        JR C, paulDead
+        JR C, HandleDeath
+
         HALT
 
-
+        ; Check if Paul reached the exit
         LD HL, (spriteX)
         LD A, H
         CP 1
-        JR NZ, pause0
+        JR NZ, CheckPause
         LD A, L
         CP 40
-        JR C, pause0
+        JR C, CheckPause
+
         CALL levelUp
-        JR loop
-        ; key H will pause the program
-pause0
-        LD BC, $bffe
+        JR MainLoop
+
+; ----------------------------
+; Pause Handling (H key)
+; ----------------------------
+CheckPause:
+        LD BC, $bffe                ; key group with H
         IN A, (C)
-        AND %00010000
-        JR NZ, noPause
-pause
+        AND %00010000               ; bit 4 = H
+        JR NZ, CheckExit
+
+PauseLoop:
         HALT
         IN A, (C)
         AND %00010000
-        JR NZ, pause
+        JR NZ, PauseLoop            ; wait until H pressed again
 
-noPause
-        ; Key X will end the program
-        LD BC, $fefe                        ; port for keys: shift, z, x, c, v
-        IN A, (C)                           ; read the port
-        AND %00000100                       ; mask bit 2, i.e. x
-        JR NZ, loop                          ; branch if x is not pressed
-        JR progEnd                          ; otherwise jump to end prog
+; ----------------------------
+; Exit Handling (X key)
+; ----------------------------
+CheckExit:
+        LD BC, $fefe                ; key group: shift, Z, X, C, V
+        IN A, (C)
+        AND %00000100               ; bit 2 = X
+        JR NZ, MainLoop             ; X not pressed → continue game
+        JR EndProgram               ; X pressed → end program
 
-paulDead
-        LD A, (lives)                       ; get current lives
-        DEC A                               ; minus 1
-        LD (lives), A                       ; save it
-        JR NZ, MP1                          ; if not 0, restart level
-        JR MP2                              ; otherwise start over
-progEnd
+; ----------------------------
+; Paul Died: Lose a life
+; ----------------------------
+HandleDeath:
+        LD A, (lives)
+        DEC A
+        LD (lives), A
+        JR NZ, RestartLevel         ; still have lives → retry level
+        JR GameStart                ; no lives → new game
+
+; ----------------------------
+; Program End
+; ----------------------------
+EndProgram:
         CALL endProg
         NEXTREG $7, 0
         IM 1
@@ -777,77 +802,84 @@ keyEnd
         RET
 
 
-; this shows a Pogo power meter on screen
-showPower
-        LD A, (strengthInd)                 ; strength 1-16
-        LD E, A                             ; save it in E
-        LD B, 15                            ; 15 bars to display
-        LD C, 40                            ; tile next line displacement
-        LD HL, tileMapData +121             ; start at top
-        CALL powerColour                    ; get power colour in D
-showPower2
-        LD A, E                             ; get E
-        CP B                                ; compare with B
-        JR NC, setPC                        ; branch if B <= A
-        LD A, boxBlank                      ; set box to empty colour
-        JR setPC1
-setPC
-        LD A, D                             ; set box to power colour
-setPC1
-        LD (HL), A                          ; put power colour tile on screen
-        LD A, C                             ; get tile displacement
-        ADD HL, A                           ; ready for next line down
-        DJNZ showPower2                     ; loop for all 15 bars
-        RET
 
-powerColour
-        LD A, E
+; --------------------------------
+; Draw Pogo Power Meter (15 bars)
+; --------------------------------
+showPower:
+        LD A, (strengthInd)         ; A = current strength (1–16)
+        LD E, A                     ; Save for use in loop
+        LD B, 15                    ; Number of bars to draw
+        LD C, 40                    ; Tile row stride
+        LD HL, tileMapData + 121    ; Start position (top of power bar)
+
+        ; Inlined getPowerColour:
         LD D, boxRed
         CP 12
-        JR NC, PCend
+        JR NC, .drawBarLoop
         LD D, boxAmber
         CP 7
-        JR NC, PCend
+        JR NC, .drawBarLoop
         LD D, boxGreen
-PCend
+
+.drawBarLoop:
+        LD A, E                     ; Get strength
+        CP B                        ; Is strength ≥ current bar number?
+        JR NC, .useColourTile       ; If so, draw color
+        LD A, boxBlank              ; Otherwise, draw blank
+        JR .storeTile
+
+.useColourTile:
+        LD A, D                     ; Use power colour
+
+.storeTile:
+        LD (HL), A                  ; Write tile
+        LD A, C
+        ADD HL, A                   ; Move to next row
+        DJNZ .drawBarLoop           ; Loop
+
         RET
 
-; this shows a Paul health meter on screen
-showHealth
-        LD A, (features)                    ; get the page features
-        BIT 0, A                            ; bit 0 signifies show health
-        RET NZ                              ; return if its not set
-        LD A, (health)                      ; get current health
-        LD B, 15                            ; there are 15 health boxes
-        LD C, 40                            ; tile next line displacement
-        LD E, A                             ; save in E for later
-        LD HL, tileMapData +158             ; top of health boxes
-        CALL healthColour                   ; get the tile to use in D
-showHealth2
-        LD A, E                             ; get the health
-        CP B                                ; compare with current box
-        JR NC, setHC                        ;
+
+; --------------------------------
+; Draw Paul's Health Meter (15 bars)
+; --------------------------------
+showHealth:
+        LD A, (features)              ; Get page features
+        BIT 0, A                      ; Is health display disabled?
+        RET NZ                        ; If so, skip display
+
+        LD A, (health)               ; Get current health value
+        LD E, A                      ; Store for later
+        LD B, 15                     ; Number of bars
+        LD C, 40                     ; Tile row stride
+        LD HL, tileMapData + 158     ; Start of health bar
+
+        ; Inlined healthColour logic
+        LD D, boxGreen               ; Default to green
+        CP 12
+        JR NC, .drawHealthBar
+        LD D, boxAmber
+        CP 9
+        JR NC, .drawHealthBar
+        LD D, boxRed
+
+.drawHealthBar:
+        LD A, E                      ; E = health
+        CP B
+        JR NC, .useHealthTile        ; If health ≥ bar number
         LD A, boxBlank
-        JR setHC1
-setHC
-        LD A, D                             ; get the health tile to display
-setHC1
-        LD (HL), A                          ; put on screen
-        LD A, C                             ; get tile displacement
-        ADD HL, A                           ; ready for next line down
-        DJNZ showHealth2                    ; loop for all 15 bars
-        RET
+        JR .storeTile
 
-healthColour
-        LD A, E                             ; get the health
-        LD D, boxGreen                      ; default to Green box
-        CP 12                               ; is health GE 12
-        JR NC, HCend                        ; jump if so
-        LD D, boxAmber                      ; default to Orange
-        CP 9                                ; is health GE 9
-        JR NC, HCend                        ; jump if so
-        LD D, boxRed                        ; default to Red
-HCend
+.useHealthTile:
+        LD A, D                      ; Use health colour tile
+
+.storeTile:
+        LD (HL), A                   ; Draw tile
+        LD A, C
+        ADD HL, A                    ; Move to next row
+        DJNZ .drawHealthBar          ; Loop for all 15 bars
+
         RET
 
 
