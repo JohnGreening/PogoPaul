@@ -1,5 +1,6 @@
 device ZXSPECTRUMNEXT
 
+INCLUDE "myMacros.inc"
 INCLUDE "c.inc"
 
 
@@ -1051,11 +1052,9 @@ showLevel
         LD BC, 20
         LDIR 
 
-        ; display the message
-        LD IY, tLevel1                      ; show "Level"
-        CALL DispT
-        LD IY, tLevel2                      ; show "Press Space"
-        CALL DispT
+        ; display the message "Level and press Space"
+        displayText tLevel1
+        displayText tLevel2
         LD A, (LEVEL)
         INC A
         LD IY, iyLevel                      ; show the actual level number
@@ -1208,46 +1207,27 @@ CTME
 
 showTitles
         CALL showPower
-        LD IY, tPower1
-        CALL DispT
-        LD IY, tPower2
-        CALL DispT
-        LD IY, tPower3
-        CALL DispT
-        LD IY, tPower4
-        CALL DispT
-        LD IY, tPower5
-        CALL DispT
-        LD IY, tPower6
-        CALL DispT
-        LD IY, tPower7
-        CALL DispT
-        LD IY, tPower8
-        CALL DispT
-        LD IY, tPower9
-        CALL DispT
+        displayText tPower1
+        displayText tPower2
+        displayText tPower3
+        displayText tPower4
+        displayText tPower5
+        displayText tPower6
+        displayText tPower7
+        displayText tPower8
+        displayText tPower9
 
         CALL showHealth
-        LD IY, tHealth1
-        CALL DispT
-        LD IY, tHealth2
-        CALL DispT
-        LD IY, tHealth3
-        CALL DispT
-        LD IY, tHealth4
-        CALL DispT
-        LD IY, tHealth5
-        CALL DispT
-        LD IY, tHealth6
-        CALL DispT
+        displayText tHealth1
+        displayText tHealth2
+        displayText tHealth3
+        displayText tHealth4
+        displayText tHealth5
+        displayText tHealth6
 
-
-        LD IY, tScore1
-        CALL DispT
-        LD IY, tHiScore
-        CALL DispT
-        LD IY, tLives
-        CALL DispT
+        displayText tScore1
+        displayText tHiScore
+        displayText tLives
 
         CALL showScore
         CALL showHiScore
@@ -1384,14 +1364,9 @@ scroll
         RET
 
 instructions
-        LD IY, tInst1
-        CALL DispT
-
-        LD IY, tInst2
-        CALL DispT
-
-        LD IY, tInst3
-        CALL DispT
+        displayText tInst1
+        displayText tInst2
+        displayText tInst3
 
         LD IX, balloonTemp
         LD (IX +sprIndex), 52
