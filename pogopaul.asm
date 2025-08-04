@@ -384,10 +384,6 @@ balloonEnd
         ADD IX, BC
         JP balloonUpt1
 
-
-balloonSwoop
-        DB 0,0,0,1,2,0,0,0,1,0,0,0,2,1,1,0,0,2,1,1,1,2,0,1,1,1,1,0,2,1,1,2
-
 balloonAction
 DW balloonEnd                               ; pattern  0
 DW balloonEnd                               ; pattern  1
@@ -424,12 +420,6 @@ DW balloonEnd                               ; pattern 31
 DW balloonEnd                               ; blank sprite
 DW toxic1                                   ; Toxic drop
 
-maxX EQU 320
-minX EQU 0
-maxY EQU 240
-minY EQU 24
-
-
 
 showPaul1
         LD IX, manSprite
@@ -440,35 +430,6 @@ showPaul1
 ;        HALT
 ;        HALT
         RET
-
-riseCnt        DB 18
-
-strengthInd    DB 1
-
-jumping        EQU 0
-falling        EQU 1
-nothing        EQU 0
-left           EQU 1
-right          EQU 2
-facingLeft     EQU 2
-facingRight    EQU 0
-
-leftRightCount DB 2
-leftRightDelay DB 2
-
-keyDelay       DB 5
-keyDelayInit   EQU 5
-; Pauls health indicator
-; if he hits a baddie or bangs his head then the delay is reduced by 3
-; when delay is zero then health reduces by 1 and delay is set to default
-health         DB 15
-healthDelay    DB 7
-healthDefault  EQU 15
-
-boxGreen     EQU 9
-boxAmber     EQU 10
-boxRed       EQU 11
-boxBlank     EQU 12
 
 showPaul
         LD A, (keyDelay)                    ; we only intercept keystrokes every so often    
@@ -910,18 +871,6 @@ reverseX1
         CP facingRight
         JR Z, movePaulLeft
         RET
-;rx1Left
-;        CALL xPlus1
-;        RET
-;rx1Right
-;        CALL xMinus1
-;        RET
-
-bounceTable
-        DB 16, 24, 32, 36, 40, 44, 48, 52, 56, 60, 64 , 68, 72, 76, 80, 84
-        DB   4,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
-
-
 
 newGame
 ; first time in OR lives all lost and starting over
@@ -1392,96 +1341,6 @@ instructions
         CALL showPaul1
 
         RET
-
-tPower1      DB   6, 0, "p", 255
-tPower2      DB   7, 0, "o", 255
-tPower3      DB   8, 0, "g", 255
-tPower4      DB   9, 0, "o", 255
-tPower5      DB 11, 0, "p", 255
-tPower6      DB 12, 0, "o", 255
-tPower7      DB 13, 0, "w", 255
-tPower8      DB 14, 0, "e", 255
-tPower9      DB 15, 0, "r", 255
-
-tHealth1     DB   8,39, "h", 255
-tHealth2     DB   9,39, "e", 255
-tHealth3     DB 10,39, "a", 255
-tHealth4     DB 11,39, "l", 255
-tHealth5     DB 12,39, "t", 255
-tHealth6     DB 13,39, "h", 255
-
-tScore1      DB 0, 1, "score", 255
-tHiScore     DB 0, 15, "hiscore", 255
-tLives       DB 0, 30, "lives", 255
-
-tInst1       DB 15,  0, " o: jump left         p: jump right     ", 255
-tInst2       DB 17,  0, " a: increase bounce   z: decrease bounce", 255
-tInst3       DB 31,  9, "press space to begin", 255
-
-textLines EQU 31
-tScroll
-       DB 28,  0, " ", 164, 165, " pop the balloons before they burst  ", 255
-       DB 28,  0, " ", 166, 167, " for the chance to collect a reward  ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " ", 160, 161, " take too long and they'll turn into ", 255
-       DB 28,  0, " ", 162, 163, " these nasties, they are deadly !    ", 255
-       DB 28,  0, "                                        ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " collect any rewards once they land ... ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " ", 180, 181, " grab the points booster, rack 'em up", 255
-       DB 28,  0, " ", 182, 183, " every point counts                  ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " ", 172, 173, " apples are good for you             ", 255
-       DB 28,  0, " ", 174, 175, " snag this for a juicy health boost  ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " ", 168, 169, " you can't live forever but this     ", 255
-       DB 28,  0, " ", 170, 171, " will award an extra life            ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " ", 184, 185, " use this to blast those nasties     ", 255
-       DB 28,  0, " ", 186, 187, " press 'space' in game to activate   ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " ", 176, 177, " find the key to unlock your         ", 255
-       DB 28,  0, " ", 178, 179, " escape route and level up           ", 255
-       DB 28,  0, "                                        ", 255
-
-       DB 28,  0, " oh yeah, don't bang your head too much ", 255
-       DB 28,  0, " it'll sap your health                  ", 255
-       DB 28,  0, "                                        ", 255
-       DB 28,  0, "                                        ", 255
-       DB 28,  0, "                                        ", 255
-       DB 28,  0, "                                        ", 255
-       DB 28,  0, "                                        ", 255
-
-tLevel1      DB 16, 16, "level", 255
-tLevel2      DB 18, 10, "press space to begin", 255
-
-iyScore      EQU tileMapData + 7
-iyHiScore    EQU tileMapData +23
-iyLives      EQU tileMapData + 36
-iyLevel      EQU tileMapData +662
-iyDynamite   EQU tileMapData +1205
-iyKey        EQU tileMapData +1208
-tileCross    EQU 13
-tileTick     EQU 14
-
-
-score        DW 0
-hiscore      DW 0
-lives        DB 3
-dynamiteCnt  DB 0
-keyCnt       DB 0
-features     DB 0
-LEVEL        DB 0
-
-levelStore   DEFS 60, 0
 
 random1
         PUSH HL
@@ -2728,11 +2587,6 @@ nib21
         SLA E
         SET 0, E
         JR nib2Done
-
-
-
-
-
 
 
 
