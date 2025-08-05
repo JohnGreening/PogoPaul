@@ -180,3 +180,9 @@ boxGreen     EQU 9
 boxAmber     EQU 10
 boxRed       EQU 11
 boxBlank     EQU 12
+
+AYSelect       EQU $FFFD
+AYrw           EQU $bffd
+AYPortC        EQU $FD      ; Port low byte, stays in C
+AYPortSelectB  EQU $FF      ; B value for AYSelect port ($FFFD)
+AYPortWriteB   EQU $BF      ; B value for AYrw port ($BFFD)
