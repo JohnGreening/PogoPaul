@@ -269,7 +269,7 @@ balloonUp
         DEC A
         CP minY
         JR NC, clampMinY1
-        LD A, 0
+        XOR A
         LD (IX +sBalloon.swoop), A
         LD A, minY
 clampMinY1
@@ -588,14 +588,14 @@ hitRising1
         CALL reverseX1                      ; reverse previous left/right
         INC (IX +sBalloon.lowY)                   ; move Paul down
 
-        LD A, 0                             ; Paul is now falling
+        XOR A                             ; Paul is now falling
         LD (riseCnt), A                     ; set it
 
         LD A, (hitind1)                     ; don't pause l/r movement
         CP 6                                ; if its just Paul's head
         JP Z, paulFinish
 
-        LD A, 0
+        XOR A
         LD (IX +sBalloon.dirH), A
         JP paulFinish
 
@@ -659,9 +659,9 @@ bounce
 ; - if we were falling, then change to jumping
 ; - if we were jumping then continue jumping
         LD A, (strengthInd)
-        SLA A
-        SLA A
-        AND %00011111
+        ADD A, A
+        ADD A, A
+        AND %00111111
         OR 3
         LD (sound3Dur), A                   ; set duration related to strength
         LD A, soundBounce
@@ -727,7 +727,7 @@ ks1
 ks2
         LD A, soundKillskull                ; make sound fx
         CALL playsound
-        LD A, 0                             ; dynamite is exhausted
+        XOR A                             ; dynamite is exhausted
         LD (dynamiteCnt), A
         CALL showDynamite
         RET
@@ -880,7 +880,7 @@ newGame
 
         LD HL, 0
         LD (score), HL
-        LD A, 0
+        XOR A
         LD (dynamiteCnt), A
         LD (keyCnt), A
         LD A, 3
@@ -1410,7 +1410,7 @@ randomY
 randomX
         CALL random1
         AND %00001111
-        SLA A
+        ADD A, A
         LD HL, rndX
         ADD HL, A
         LD A, (HL)
@@ -1750,10 +1750,10 @@ playsound:
         PUSH BC
 
         DEC A
-        SLA A
-        SLA A
-        SLA A
-        SLA A
+        ADD A, A
+        ADD A, A
+        ADD A, A
+        ADD A, A
 
         LD HL, sound1
         ADD HL, A
@@ -2148,7 +2148,7 @@ hitRind DB 0
 hitLind DB 0
 
 paulTileCollision
-        LD A, 0                             ; no hit
+        XOR A                             ; no hit
         LD (hitind), A                      ; no hit Y pixel count - bottom
         LD (hitind1), A                     ; no hit Y pixel count - top
         LD (hitRind), A                     ; no hit RHS
@@ -2239,7 +2239,7 @@ chkLines
 
 itemTileCollision
         PUSH DE
-        LD A, 0
+        XOR A
         LD (hitind), A
         LD (hitind1), A
         LD (hitRind), A
@@ -2473,9 +2473,9 @@ b3x5loop:
 
         LD A, (IY +0)                       ; get tile here
         LD DE, tilebmp                      ; get base of udgs for tiles
-        SLA A                               ; multiply by 8
-        SLA A                               ; to point to udg we want
-        SLA A
+        ADD A, A                               ; multiply by 8
+        ADD A, A                               ; to point to udg we want
+        ADD A, A
         ADD DE, A                           ; DE now points to UDG
 
         LD A, (DE)                          ; get pixel line 1
@@ -2615,7 +2615,7 @@ chkSprite
 ; - exit if end marker
 ; - call collision check routine
 ; - check if collision and loop if not, otherwise return IX = balloon hit
-        LD A, 0
+        XOR A
         LD (collisionInd), A
 
         LD A, (IX +sBalloon.pattern)
@@ -2756,7 +2756,7 @@ itemCollideCommon
         LD (IY +sBalloon.newSprite), A
 itemHitCommon
         LD (IY +sBalloon.pattern), A
-        LD A, 0
+        XOR A
         LD (IY +sBalloon.popDelayH), A
         LD A, 15
         LD (IY +sBalloon.popDelayL), A
@@ -3725,7 +3725,7 @@ im2Routine
 
 ; write Ch1 tone to AY chip
         LD B, $FF              ; AYSelect
-        LD A, 0
+        XOR A
         OUT (C), A
         LD B, $BF              ; AYrw
         OUT (C), L
@@ -3829,7 +3829,7 @@ im2Routine
 
 ; get the Ch1 flags
         LD DE, (Ch1Flags)               ; get Ch1 tone, noise flags
-        LD A, 0                         ; initialise AY chip flag
+        XOR A                           ; initialise AY chip flag
         BIT 0, E                        ; is bit 0 (tone) set for Ch1
         JR NZ, ch1toneskip              ; jump if not
         SET 0, A                        ; set OFF for Ch1 tone
@@ -3933,7 +3933,7 @@ playNotes
         OUT (C), A
 
         ; Tone A
-        LD A, 0
+        XOR A
         OUT (C), A
         LD A, (DE)
         INC DE
@@ -4035,7 +4035,7 @@ playNotes
         OUT (C), A
 
         ; Tone A
-        LD A, 0
+        XOR A
         OUT (C), A
         LD A, (DE)
         INC DE
