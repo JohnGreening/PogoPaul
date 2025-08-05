@@ -1789,6 +1789,7 @@ sound1:
 ; volume delta
 ; tone, noise, envelope flags
 ; length in frames (50hz)
+; filler to make each 16 bytes long
 
 ; hit head sound
         DW 500
@@ -3091,41 +3092,50 @@ im2Routine
         LD B, AYPortWriteB
         OUT (C), A
 
-; get the Ch1 flags
-        LD DE, (Ch1Flags)               ; get Ch1 tone, noise flags
-        XOR A                           ; initialise AY chip flag
-        BIT 0, E                        ; is bit 0 (tone) set for Ch1
-        JR NZ, ch1toneskip              ; jump if not
-        SET 0, A                        ; set OFF for Ch1 tone
-ch1toneskip
-        BIT 1, E                        ; is bit 1 (noise) set for Ch1
-        JR NZ, ch1noiseskip             ; jump if not
-        SET 3, A                        ; set OFF for Ch1 noise
-ch1noiseskip
-        LD DE, (Ch2Flags)               ; get Ch2 tone, noise flags
-        BIT 0, E                        ; is bit 0 (tone) set for Ch2
-        JR NZ, ch2toneskip              ; jump if not
-        SET 1, A                        ; set OFF for Ch2 tone
-ch2toneskip
-        BIT 1, E                        ; is bit 1 (noise) set for Ch2
-        JR NZ, ch2noiseskip             ; jump if not
-        SET 4, A                        ; set OFF for Ch2 noise
-ch2noiseskip
+; set the AY mixer value depending on ch1Flags, ch2Flags & ch3Flags
+; these control the tone and noise flags in main AY mixer setting
+; mapping is as follows and we negate the Ch1/2/3Flag setting
+; Ch1Flags
+; bit
+; 0 -> 0
+; 1 -> 3
+; Ch2Flags
+; 0 -> 1
+; 1 -> 4
+; Ch3Flags
+; 0 -> 2
+; 1 -> 5
+        LD C, 255                               ; initialise to all 1's, everything off
+        LD HL, mixerFlags                       ; point to mapping data for Ch1Flags
+        LD DE, (Ch1Flags)                       ; get Ch1Flags setting
+        LD A, E                                 ; put into A
+        AND %00000011                           ; we're only interested in bits 0,1
+        ADD HL, A                               ; offset into mixerFlags mapping
+        LD A, (HL)                              ; get value
+        AND C                                   ; AND with existing
+        LD C, A                                 ; store back
+
+        LD HL, mixerFlags +4
+        LD DE, (Ch2Flags)
+        LD A, E
+        AND %00000011
+        ADD HL, A
+        LD A, (HL)
+        AND C
+        LD C, A
+        LD HL, mixerFlags +8
         LD DE, (Ch3Flags)
-        BIT 0, E
-        JR NZ, ch3toneskip
-        SET 2, A
-ch3toneskip
-        BIT 1, E
-        JR NZ, ch3noiseskip
-        SET 5, A
-ch3noiseskip
+        LD A, E
+        AND %00000011
+        ADD HL, A
+        LD A, (HL)
+        AND C
         LD BC, AYSelect
         LD D, mixerFlag
         OUT (C), D
         LD BC, AYrw
         OUT (C), A
-
+        
         LD A, (Ch1Length)
         DEC A
         JR NZ, ch1endskip
