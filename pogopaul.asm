@@ -2973,11 +2973,11 @@ im2Routine
 ; push/pop are in main program
 
 
-        LD C, $FD              ; shared port for AY chip access
+        LD C, AYPortC              ; shared port for AY chip access
 
 ; select AY1
-        LD B, $FF              ; AYSelect
-        LD A, %11111111
+        LD B, AYPortSelectB              ; AYSelect
+        LD A, 255
         OUT (C), A
 
 ; get the Ch1 tone value
@@ -2988,16 +2988,16 @@ im2Routine
         LD (Ch1Pitch), HL
 
 ; write Ch1 tone to AY chip
-        LD B, $FF              ; AYSelect
-        XOR A
+        LD B, AYPortSelectB             ; AYSelect
+        LD A, channel1ToneL
         OUT (C), A
-        LD B, $BF              ; AYrw
+        LD B, AYPortWriteB              ; AYrw
         OUT (C), L
 
-        LD B, $FF
-        LD A, 1
+        LD B, AYPortSelectB
+        LD A, channel1ToneH
         OUT (C), A
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), H
 
 ; get the Ch1 volume value
@@ -3011,10 +3011,10 @@ im2Routine
         AND 15
 
 ; write Ch1 volume to AY chip
-        LD B, $FF
-        LD H, 8
+        LD B, AYPortSelectB
+        LD H, channel1Volume
         OUT (C), H
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), A
 
 ; get the Ch2 tone value
@@ -3025,16 +3025,16 @@ im2Routine
         LD (Ch2Pitch), HL
 
 ; write Ch2 tone to AY chip
-        LD B, $FF
-        LD A, 2
+        LD B, AYPortSelectB
+        LD A, channel2ToneL
         OUT (C), A
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), L
 
-        LD B, $FF
-        LD A, 3
+        LD B, AYPortSelectB
+        LD A, channel2ToneH
         OUT (C), A
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), H
 
 ; get the Ch2 volume value
@@ -3048,10 +3048,10 @@ im2Routine
         AND 15
 
 ; write Ch2 volume to AY chip
-        LD B, $FF
-        LD H, 9
+        LD B, AYPortSelectB
+        LD H, channel2Volume
         OUT (C), H
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), A
 
 ; get the Ch3 tone value
@@ -3062,16 +3062,16 @@ im2Routine
         LD (Ch3Pitch), HL
 
 ; write Ch3 tone to AY chip
-        LD B, $FF
-        LD A, 4
+        LD B, AYPortSelectB
+        LD A, channel3ToneL
         OUT (C), A
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), L
 
-        LD B, $FF
-        LD A, 5
+        LD B, AYPortSelectB
+        LD A, channel3ToneH
         OUT (C), A
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), H
 
 ; get the Ch3 volume value
@@ -3085,10 +3085,10 @@ im2Routine
         AND 15
 
 ; write Ch3 volume to AY chip
-        LD B, $FF
-        LD H, 10
+        LD B, AYPortSelectB
+        LD H, channel3Volume
         OUT (C), H
-        LD B, $BF
+        LD B, AYPortWriteB
         OUT (C), A
 
 ; get the Ch1 flags
@@ -3121,7 +3121,7 @@ ch3toneskip
         SET 5, A
 ch3noiseskip
         LD BC, AYSelect
-        LD D, 7
+        LD D, mixerFlag
         OUT (C), D
         LD BC, AYrw
         OUT (C), A
