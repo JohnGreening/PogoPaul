@@ -3107,8 +3107,7 @@ im2Routine
 ; 1 -> 5
         LD C, 255                               ; initialise to all 1's, everything off
         LD HL, mixerFlags                       ; point to mapping data for Ch1Flags
-        LD DE, (Ch1Flags)                       ; get Ch1Flags setting
-        LD A, E                                 ; put into A
+        LD A, (Ch1Flags)                        ; get Ch1Flags setting
         AND %00000011                           ; we're only interested in bits 0,1
         ADD HL, A                               ; offset into mixerFlags mapping
         LD A, (HL)                              ; get value
@@ -3116,16 +3115,14 @@ im2Routine
         LD C, A                                 ; store back
 
         LD HL, mixerFlags +4
-        LD DE, (Ch2Flags)
-        LD A, E
+        LD A, (Ch2Flags)
         AND %00000011
         ADD HL, A
         LD A, (HL)
         AND C
         LD C, A
         LD HL, mixerFlags +8
-        LD DE, (Ch3Flags)
-        LD A, E
+        LD A, (Ch3Flags)
         AND %00000011
         ADD HL, A
         LD A, (HL)
