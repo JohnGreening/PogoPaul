@@ -61,6 +61,9 @@ key            EQU 20
 points         EQU 24
 dynamite       EQU 28
 
+maxLevel EQU 8
+levelLen EQU 9
+splashLevel EQU 9
 
 tPower1      DB   6, 0, "p", 255
 tPower2      DB   7, 0, "o", 255
