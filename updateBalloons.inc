@@ -56,7 +56,9 @@ balloonPop
         JR Z, popDone
         LD A, skull
         LD (IX +sBalloon.newSprite), A
-
+        LD A, skullDelay
+        LD (IX +sBalloon.landValue), A
+        
 popDone
         LD HL, 15                           ; set a little delay
         LD (IX +sBalloon.popDelayL), L      ; save low byte
@@ -173,6 +175,12 @@ clampMinY1
 ; Skull has completly different movement
 ; so handle that here
 skull1
+        LD A, (IX +sBalloon.landValue)
+        DEC A
+        LD (IX +sBalloon.landValue), A
+        JP NZ, balloonEnd
+        LD A, skullDelay
+        LD (IX +sBalloon.landValue), A
         CALL random
         AND %00000001
         JR Z, skullX

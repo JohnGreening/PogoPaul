@@ -1,4 +1,19 @@
 
+; NEXTREG is used to write to Next/TBBlue feature control registers
+; but there isn't a equivalent instruction to do a read
+; instead 
+;    we write to port $243B to select the register to write to
+;    and then read the value back from port $253B
+ReadNextReg
+        PUSH BC
+        LD BC, $243b
+        OUT (C), A
+        INC B
+        IN A, (C)
+        POP BC
+        RET
+
+
 ULAoff
         LD A, $68
         CALL ReadNextReg
@@ -10,15 +25,6 @@ ULAon
         CALL ReadNextReg
         AND %01111111
         NEXTREG $68, A
-        RET
-
-ReadNextReg
-        PUSH BC
-        LD BC, $243b
-        OUT (C), A
-        INC B
-        IN A, (C)
-        POP BC
         RET
 
 random1
