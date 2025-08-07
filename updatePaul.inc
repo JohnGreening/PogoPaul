@@ -49,11 +49,11 @@ showPaul0
         JP Z, paulFalling                   ; branch if so
 
 paulRising
-        DEC (IX +sBalloon.lowY)                   ; otherwise move Paul up
+        DEC (IX +sBalloon.lowY)             ; otherwise move Paul up
         JR doLeftRight                      ; end of rise processing
 
 paulFalling
-        INC (IX +sBalloon.lowY)                   ; move Paul down
+        INC (IX +sBalloon.lowY)             ; move Paul down
 
 doLeftRight
 ; so here we decide if Paul is allowed to move left/right
@@ -67,7 +67,7 @@ doLeftRight
         LD A, (leftRightDelay)              ; set L/R countdown default
         LD (leftRightCount), A              ; save it
 
-        LD A, (IX +sBalloon.dirH)                 ; get the horizontal movement
+        LD A, (IX +sBalloon.dirH)           ; get the horizontal movement
         CP nothing                          ; is it 0
         JR Z, leftrightEnd                  ; 0 = up/down only
         CP left                             ; is it 1
@@ -127,9 +127,9 @@ tileCollision
         CP 26                               ; near bottom of pogo stick
         JR C, tileCollision1                ; branch if not
                                             ; but check low point to ensure
-;        LD A, (hitind)                      ; that it's still a bounce
+;        LD A, (hitind)                     ; that it's still a bounce
 ;        CP 31
-;        JR NZ tileCollision1                ; branch if its not
+;        JR NZ tileCollision1               ; branch if its not
 
         CALL reverseX1                      ; kinda bounce but reverse any
         JP bounce                           ; left/right movement and bounce
@@ -163,9 +163,9 @@ hitRising
 
 hitRising1
         CALL reverseX1                      ; reverse previous left/right
-        INC (IX +sBalloon.lowY)                   ; move Paul down
+        INC (IX +sBalloon.lowY)             ; move Paul down
 
-        XOR A                             ; Paul is now falling
+        XOR A                               ; Paul is now falling
         LD (riseCnt), A                     ; set it
 
         LD A, (hitind1)                     ; don't pause l/r movement
@@ -244,7 +244,7 @@ bounce
         LD A, soundBounce
         CALL playsound
 
-        DEC (IX +sBalloon.lowY)                   ; move Paul up
+        DEC (IX +sBalloon.lowY)             ; move Paul up
 
         LD A, (strengthInd)                 ; get index into bounce table
         LD HL, bounceTable                  ; point to bounce table
@@ -274,7 +274,7 @@ paulFinish
         LD A, (health)                      ; get health value
         AND A                               ; see if it's zero
         RET NZ                              ; return if not
-        SCF                                  ; otherwise set carry flag
+        SCF                                 ; otherwise set carry flag
         RET                                 ; and return, dead
 
 killSkulls
@@ -284,11 +284,11 @@ killSkulls
         LD C, 0                             ; skull kill count
         LD B, A                             ; "balloons" to process
 ks0
-        LD A, (IY +sBalloon.pattern)                  ; get pattern
+        LD A, (IY +sBalloon.pattern)        ; get pattern
         CP skull                            ; was it a skull
         JR NZ, ks1                          ; branch if not, next to test
         INC A                               ; +1 to pattern -> explosion
-        LD (IY +sBalloon.pattern), A                  ; set it
+        LD (IY +sBalloon.pattern), A        ; set it
         LD HL, 15                           ; and a little pop delay
         LD (IY +sBalloon.popDelayH), H
         LD (IY +sBalloon.popDelayL), L
@@ -304,7 +304,7 @@ ks1
 ks2
         LD A, soundKillskull                ; make sound fx
         CALL playsound
-        XOR A                             ; dynamite is exhausted
+        XOR A                               ; dynamite is exhausted
         LD (dynamiteCnt), A
         CALL showDynamite
         RET
@@ -341,16 +341,16 @@ keyEnd
         RET
 
 movePaulRight
-        LD L, (IX +sBalloon.lowX)                 ; add 1 to X coord
-        LD H, (IX +sBalloon.highX)                ; i.e. move RIGHT
+        LD L, (IX +sBalloon.lowX)           ; add 1 to X coord
+        LD H, (IX +sBalloon.highX)          ; i.e. move RIGHT
         INC HL
         LD (IX +sBalloon.lowX), L
         LD (IX +sBalloon.highX), H
         RET
 
 movePaulLeft
-        LD L, (IX +sBalloon.lowX)                 ; deduct 1 from X coord
-        LD H, (IX +sBalloon.highX)                ; i.e. move LEFT
+        LD L, (IX +sBalloon.lowX)           ; deduct 1 from X coord
+        LD H, (IX +sBalloon.highX)          ; i.e. move LEFT
         DEC HL
         LD (IX +sBalloon.lowX), L
         LD (IX +sBalloon.highX), H

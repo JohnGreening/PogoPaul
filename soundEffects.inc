@@ -16,24 +16,24 @@ playsound:
         LD HL, sound1
         ADD HL, A
 
-        LD A, (nextCH)                  ; whats the nextCH to use
-        CP 0                            ; is it 0?
-        JR Z, playCh1                   ; jump if so
-        CP 1                            ; is it 1?
-        JR Z, playCh2                   ; jump if so
-        LD A, 255                       ; its 2, set next so its 0
-        LD DE, Ch3                      ; set AY channel to 3
-        JR play                         ; and branch to do the sound setup
+        LD A, (nextCH)                      ; whats the nextCH to use
+        CP 0                                ; is it 0?
+        JR Z, playCh1                       ; jump if so
+        CP 1                                ; is it 1?
+        JR Z, playCh2                       ; jump if so
+        LD A, 255                           ; its 2, set next so its 0
+        LD DE, Ch3                          ; set AY channel to 3
+        JR play                             ; and branch to do the sound setup
 playCh1:
-        LD DE, Ch1                      ; set the AY channel to 1
-        JR play                         ; and branch to do the sound setup
+        LD DE, Ch1                          ; set the AY channel to 1
+        JR play                             ; and branch to do the sound setup
 playCh2:
-        LD DE, Ch2                      ; set the AY channel to 2
+        LD DE, Ch2                          ; set the AY channel to 2
 play:
-        INC A                           ; roll on nextCH
-        LD (nextCH), A                  ; and save it
-        LD BC, 10                       ; we copy 10 bytes of sound setup
-        LDIR                             ; do the copy
+        INC A                               ; roll on nextCH
+        LD (nextCH), A                      ; and save it
+        LD BC, 10                           ; we copy 10 bytes of sound setup
+        LDIR                                ; do the copy
 
         POP BC
         POP DE

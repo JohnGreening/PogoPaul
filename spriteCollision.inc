@@ -1,0 +1,373 @@
+chkCollide
+; get Paul's 1bit bitmap depending on his direction
+        LD A, (manPat)
+        AND A
+        JR Z, cMBM1
+        JR cMBM2
+cMBM1
+        LD HL, paulbmpR
+        LD (manBitmap), HL
+        JR chkCollide1
+cMBM2
+        LD HL, paulbmpL
+        LD (manBitmap), HL
+
+chkCollide1
+; point to start of balloon data
+        LD IX, balloonSpr
+
+chkSprite
+; for each "balloon" or until collision is detected
+; - reset collision ind (0=no hit, 1=hit)
+; - exit if end marker
+; - call collision check routine
+; - check if collision and loop if not, otherwise return IX = balloon hit
+        XOR A
+        LD (collisionInd), A
+
+        LD A, (IX +sBalloon.pattern)
+        CP 255
+        RET Z
+
+        PUSH IX
+        CALL chkSprite1
+        POP IX
+
+        LD A, (collisionInd)
+        AND A
+        RET NZ
+        LD DE, sBalloon
+        ADD IX, DE
+        JR chkSprite
+
+
+;--------------------------------------------------------------------------
+; A is passed with "balloon" sprite pattern to check against
+chkSprite1
+        CP blank
+        RET Z
+
+; point to collideAction table and pick up routine to jump to in DE/HL
+; and the "balloon" bitmap to use in BC
+        ADD A, A
+        ADD A, A
+        LD HL, collideAction
+        ADD HL, A
+        LD E, (HL)
+        INC HL
+        LD D, (HL)
+        INC HL
+        LD C, (HL)
+        INC HL
+        LD B, (HL)
+        EX DE, HL
+
+        JP (HL)
+
+collideSkull
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD A, soundHitskull
+        CALL playsound
+        LD A, (healthDelay)
+        DEC A
+        LD (healthDelay), A
+        RET NZ
+        LD A, (healthDefault)
+        LD (healthDelay), A
+        LD A, (health)
+        DEC A
+        LD (health), A
+        RET
+
+collideHeart
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD A, 15
+        LD (health), A
+        LD A, (lives)
+        INC A
+        LD (lives), A
+        CALL showLives
+        JP itemCollideCommon
+
+collideApple
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD A, 15
+        LD (health), A
+        JP itemCollideCommon
+
+collideKey
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD A, 1
+        LD (keyCnt), A
+        CALL showKey
+        JP itemCollideCommon
+
+collidePoints
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD HL, (score)
+        ADD HL, 100
+        LD (score), HL
+        CALL showScore
+        JP itemCollideCommon
+
+collideDynamite
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD A, 1
+        LD (dynamiteCnt), A
+        CALL showDynamite
+        JP itemCollideCommon
+
+collideBalloon
+        CALL CS1
+        LD A, (collisionInd)
+        AND A
+        RET Z
+
+        LD HL, (score)
+        ADD HL, 50
+        LD (score), HL
+        CALL showScore
+        LD A, soundPop
+        CALL playsound
+
+        LD IY, (collisionInx)
+        LD A, balloon +1
+        JR itemHitCommon
+
+itemCollideCommon
+        LD A, soundCollect
+        CALL playsound
+        LD IY, (collisionInx)
+        LD A, blank
+        LD (IY +sBalloon.newSprite), A
+itemHitCommon
+        LD (IY +sBalloon.pattern), A
+        XOR A
+        LD (IY +sBalloon.popDelayH), A
+        LD A, 15
+        LD (IY +sBalloon.popDelayL), A
+        AND A
+        RET
+
+noAction
+        RET
+
+
+;---------------------------------------------------------
+; here we do a pixel perfect collision detection between
+; Paul and the "balloon" sprite being tested
+;---------------------------------------------------------
+CS1
+        LD (spriteBitmap), BC               ; save off location of 1bit bitmap
+        LD (collisionInx), IX               ; and the balloon in question
+doYDiff
+        LD A, (spriteY)                     ; get Paul's Y coord
+        LD B, (IX +sBalloon.lowY)           ; get Balloon Y coord
+        SUB B                               ; A= Paul Y - Balloon Y
+        JR C, spriteBelowPaul               ; if carry BalloonY > Paul Y
+
+spriteAbovePaul
+        ; Balloon Y <= Paul Y, i.e. +ve diff
+        ; exit if there is no overlap
+        CP 16
+        RET NC
+
+        ; we only want to test for a hit on the overlap pixels
+        ; the bitmap is 3 bytes per pixel line
+        ; C is calculated as the number of lines to test
+        LD HL, (spriteBitmap)
+        LD D, A
+        LD E, 3
+        MUL D, E
+        ADD HL, DE
+        LD (spriteBitmap), HL
+        LD C, A
+        LD A, 16
+        SUB C
+        LD C, A
+        JP doXDiff
+
+spriteBelowPaul
+        ; Balloon Y > Paul Y, i.e. -ve diff
+        ; exit if there is no overlap
+        ; Paul is 32 pixels tall and might be fully or partially overlapped
+        NEG 
+        CP 32
+        RET NC
+
+        ; we only want to test for a hit on the overlap pixels
+        ; the bitmap is 3 bytes per pixel line
+        ; C is calculated as the number of lines to test
+        LD HL, (manBitmap)
+        LD D, A
+        LD E, 3
+        MUL D, E
+        ADD HL, DE
+        LD (manBitmap), HL
+        LD C, 16
+        CP 16
+        JR NC, doXDiff
+        LD C, A
+        LD A, 32
+        SUB C
+        LD C, A
+
+doXDiff
+        LD HL, (spriteX)
+        LD E, (IX +sBalloon.lowX)
+        LD D, (IX +sBalloon.highX)
+        SBC HL, DE
+        BIT 7, H
+        JR Z, balloonLeftOfPaul
+
+balloonRightOfPaul
+        ; balloon X > Paul X
+        ; hence -ve diff and bit 7 of H was set
+        CALL absHL
+        CP 16
+        RET NC
+
+        LD B, A
+        LD IX, (manBitmap)
+        LD IY, (spriteBitmap)
+BROP
+        LD H, (IX +0)
+        LD L, (IX +1)
+        LD D, (IY +0)
+        LD E, (IY +1)
+        BSRA DE, B
+        LD A, H
+        AND D
+        JR NZ, myhit
+        LD A, L
+        AND E
+        JR NZ, myhit
+        LD DE, 3
+        ADD IX, DE
+        ADD IY, DE
+        DEC C
+        JR NZ, BROP
+        RET
+
+balloonLeftOfPaul
+        ; balloon X <= Paul X
+        ; hence +ve diff and bit 7 of H was 0
+        CALL absHL
+        CP 16
+        RET NC
+
+        LD B, A
+        LD IX, (manBitmap)
+        LD IY, (spriteBitmap)
+BLOP
+        LD H, (IX +0)
+        LD L, (IX +1)
+        LD D, (IY +0)
+        LD E, (IY +1)
+        BSLA DE, B
+        LD A, H
+        AND D
+        JR NZ, myhit
+        LD A, L
+        AND E
+        JR NZ, myhit
+        LD DE, 3
+        ADD IX, DE
+        ADD IY, DE
+        DEC C
+        JR NZ, BLOP
+        RET
+
+myhit
+        LD A, 1
+        LD (collisionInd), A
+        RET
+
+absHL
+        ; dirty routine to return ABS(HL)
+        ; L returned as result or 255 if clearly out of range
+        XOR A                               ; zero A and clear carry flag
+        BIT 7, H                            ; was subtraction -ve
+        JR Z, absHL1                        ; branch if not
+        SUB L                               ; do ABS(HL)
+        LD L, A
+        SBC A, A
+        SUB H
+        LD H, A
+absHL1
+        LD A, H                             ; get high byte and hence see if
+        AND A                               ; result was > 255
+        JR Z, absHL2                        ; branch if not
+        LD L, 255                           ; set a dummy value
+absHL2
+        LD A, L                             ; return L
+        RET
+
+
+
+manBitmap    DW 00                          ; location of our man bitmap
+spriteBitmap DW 00                          ; location of sprite bitmap being checked
+collisionInd DB 0
+collisionInx DW $00
+
+collideAction
+DW noAction, $00                            ; sprite  0
+DW noAction, $00                            ; sprite  1
+DW noAction, $00                            ; sprite  2
+DW noAction, $00                            ; sprite  3
+DW collideSkull, skullbmp                   ; skull
+DW noAction, $00                            ; sprite  5
+DW noAction, $00                            ; sprite  6
+DW noAction, $00                            ; sprite  7
+DW collideBalloon, balloonbmp               ; balloon
+DW noAction, $00                            ; sprite  9
+DW noAction, $00                            ; sprite 10
+DW noAction, $00                            ; sprite 11
+DW noAction, $00                            ; sprite 12
+DW collideHeart, heartbmp                   ; heart landed
+DW noAction, $00                            ; sprite 14
+DW noAction, $00                            ; sprite 15
+DW noAction, $00                            ; sprite 16
+DW collideApple, applebmp                   ; apple landed
+DW noAction, $00                            ; sprite 18
+DW noAction, $00                            ; sprite 19
+DW noAction, $00                            ; sprite 20
+DW collideKey, keybmp                       ; key landed
+DW noAction, $00                            ; sprite 22
+DW noAction, $00                            ; sprite 23
+DW noAction, $00                            ; sprite 24
+DW collidePoints, pointsbmp                 ; points landed
+DW noAction, $00                            ; sprite 26
+DW noAction, $00                            ; sprite 27
+DW noAction, $00                            ; sprite 28
+DW collideDynamite, dynamitebmp             ; dynamite landed
+DW noAction, $00                            ; sprite 30
+DW noAction, $00                            ; sprite 31
+DW noAction, $00                            ; sprite 32
+DW CS1, toxicbmp                            ; toxic drop
+
+

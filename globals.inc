@@ -1,26 +1,26 @@
     struct sBalloon
-index       byte                ; index for sprite system 0-99
-lowX        byte                ; x coord lsb
-highX       byte                ; x coord msb
-lowY        byte                ; y coord lsb
-highY       byte                ; y coord msb
-vDelay      byte                ; used by balloon sprite to delay up/down movement
-swoop       byte                ; used by balloon sprite, index into array to decide up/down
-popDelayL   byte                ; balloon sprite pop delay lsb
-popDelayH   byte                ; balloon sprite pop delay msb
-newSprite   byte                ; new sprite pattern IF popped by Paul
-landValue   byte                ; direction Vertical (Paul)     land seek value (balloon)
-dirH        byte                ; direction Horizontal (Paul)
-pattern     byte                ; sprite pattern
+index       byte                            ; index for sprite system 0-99
+lowX        byte                            ; x coord lsb
+highX       byte                            ; x coord msb
+lowY        byte                            ; y coord lsb
+highY       byte                            ; y coord msb
+vDelay      byte                            ; used by balloon sprite to delay up/down movement
+swoop       byte                            ; used by balloon sprite, index into array to decide up/down
+popDelayL   byte                            ; balloon sprite pop delay lsb
+popDelayH   byte                            ; balloon sprite pop delay msb
+newSprite   byte                            ; new sprite pattern IF popped by Paul
+landValue   byte                            ; direction Vertical (Paul)     land seek value (balloon)
+dirH        byte                            ; direction Horizontal (Paul)
+pattern     byte                            ; sprite pattern
     ENDS
 
 balloonMaxCount equ 21
 balloonSpr defs balloon * balloonMaxCount
 balloonTemp defs balloon
 
-balloonSprCnt  DB 0             ; balloon count set for level
-maxOnScreen    DB 0             ; max balloons allowed on screen at a time, set for level
-balloonNext    DB 0             ; next free balloon
+balloonSprCnt  DB 0                         ; balloon count set for level
+maxOnScreen    DB 0                         ; max balloons allowed on screen at a time, set for level
+balloonNext    DB 0                         ; next free balloon
 
 maxX EQU 320
 minX EQU 0
@@ -43,6 +43,10 @@ spriteO        DB 0
 spriteDirV     DB 0
 spriteDirH     DB 0
 manPat         DB 0
+
+manSpriteLen equ $ - manSprite
+
+    assert manSpriteLen = sBalloon, manSprite and sBalloon lengths differ in globals.inc
 
 bounceTable
         DB 16, 24, 32, 36, 40, 44, 48, 52, 56, 60, 64 , 68, 72, 76, 80, 84

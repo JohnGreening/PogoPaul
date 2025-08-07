@@ -436,8 +436,8 @@ endProg
         RET
 
 killSprites
-        LD A, 0                         ; start at sprite 0
-        LD B, 127                       ; loop for all 127 sprites
+        LD A, 0                             ; start at sprite 0
+        LD B, 127                           ; loop for all 127 sprites
 KS1
         NEXTREG $34, A
         NEXTREG $35, 0
@@ -471,28 +471,28 @@ setupBalloon1
 
 createBalloon
              LD A, C                        ; get sprite index
-             LD (IX +sBalloon.index), A           ; set in balloon data
+             LD (IX +sBalloon.index), A     ; set in balloon data
 
              CALL randomY                   ; get a random Y coord in A
-             LD (IX +sBalloon.lowY), A            ; set in balloon data
+             LD (IX +sBalloon.lowY), A      ; set in balloon data
              LD A, 0                        ; set the high Y coord byte to 0
-             LD (IX +sBalloon.highY), A           ; set in balloon data
+             LD (IX +sBalloon.highY), A     ; set in balloon data
 
              CALL random                    ; get a random number in A
              AND %00011111                  ; limit to 0-31
-             LD (IX +sBalloon.swoop), A           ; set in balloon data
+             LD (IX +sBalloon.swoop), A     ; set in balloon data
 
              ; this determines how long it will take
              ; before the balloon auto pops
              ; and turns into a skull
              LD A, 255                      ; initialise low byte pop delay
-             LD (IX +sBalloon.popDelayL), A       ; set it
+             LD (IX +sBalloon.popDelayL), A ; set it
              LD A, C                        ; initialise high byte pop delay
              ADD 2                          ; use balloon index + 1
              SLA A
-             LD (IX +sBalloon.popDelayH), A       ; set it
+             LD (IX +sBalloon.popDelayH), A ; set it
 
-             LD A, 0                        ;
+             LD A, 0
              LD (IX +sBalloon.landValue), A
 
              LD A, (maxOnScreen)
@@ -504,16 +504,16 @@ onScreen
              LD (IX +sBalloon.pattern), A
 
              CALL randomX                   ; get a random X coord in HL
-             LD (IX +sBalloon.lowX), L            ; set in balloon data
-             LD (IX +sBalloon.highX), H           ; set in balloon data
+             LD (IX +sBalloon.lowX), L      ; set in balloon data
+             LD (IX +sBalloon.highX), H     ; set in balloon data
              JR setupEnd
 
 offScreen
              LD A, blank                    ; off screen, so pattern is blank
              LD (IX +sBalloon.pattern), A
              LD HL, 0                       ; set X as 0
-             LD (IX +sBalloon.lowX), L            ; set in balloon data
-             LD (IX +sBalloon.highX), H           ; set in balloon data
+             LD (IX +sBalloon.lowX), L      ; set in balloon data
+             LD (IX +sBalloon.highX), H     ; set in balloon data
              JR setupEnd
 
 setupEnd

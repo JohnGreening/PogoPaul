@@ -3,7 +3,7 @@ balloonUpt
         LD IX, balloonSpr                   ; point to balloon data
 
 balloonUpt1
-        LD A, (IX +sBalloon.pattern)                  ; get pattern
+        LD A, (IX +sBalloon.pattern)        ; get pattern
         LD C, A                             ; save pattern
         CP 255                              ; check for finished marker
         RET Z                               ; exit if done
@@ -18,11 +18,11 @@ balloonUpt1
         JP (HL)                             ; jump to action required
 
 doBalloon
-        LD L, (IX +sBalloon.popDelayL)            ; get the pop delay low byte
-        LD H, (IX +sBalloon.popDelayH)            ; get the pop delay high byte
+        LD L, (IX +sBalloon.popDelayL)      ; get the pop delay low byte
+        LD H, (IX +sBalloon.popDelayH)      ; get the pop delay high byte
         DEC HL                              ; decrease count
-        LD (IX +sBalloon.popDelayL), L            ; save low byte
-        LD (IX +sBalloon.popDelayH), H            ; save high byte
+        LD (IX +sBalloon.popDelayL), L      ; save low byte
+        LD (IX +sBalloon.popDelayH), H      ; save high byte
         LD A, L                             ; is it zero now
         OR H
         JP NZ, moveBalloonRight             ; branch if timer >0
@@ -32,7 +32,7 @@ balloonPop
 ;
         LD A, C                             ; get the balloon pattern
         INC A                               ; add 1
-        LD (IX +sBalloon.pattern), A                  ; save it
+        LD (IX +sBalloon.pattern), A        ; save it
 
         LD A, C                             ; inspect original pattern
         CP blank
@@ -59,15 +59,15 @@ balloonPop
 
 popDone
         LD HL, 15                           ; set a little delay
-        LD (IX +sBalloon.popDelayL), L            ; save low byte
-        LD (IX +sBalloon.popDelayH), H            ; save high byte
+        LD (IX +sBalloon.popDelayL), L      ; save low byte
+        LD (IX +sBalloon.popDelayH), H      ; save high byte
         JP balloonEnd
 
 fullyPopped
 ; here balloon is fully popped
 ; we turn it into a skull, heart etc
-        LD A, (IX +sBalloon.newSprite)            ; get new sprite value
-        LD (IX +sBalloon.pattern), A                  ; make this the pattern
+        LD A, (IX +sBalloon.newSprite)      ; get new sprite value
+        LD (IX +sBalloon.pattern), A        ; make this the pattern
 
         LD A, blank
         LD (IX +sBalloon.newSprite), A
@@ -80,7 +80,7 @@ fullyPopped
         MUL D, E
         LD IY, balloonSpr
         ADD IY, DE
-        LD A, (IY +sBalloon.pattern)                  ; get current Pattern
+        LD A, (IY +sBalloon.pattern)        ; get current Pattern
         CP 255                              ; if it's 255, we're at end
         JP Z, balloonEnd
         LD A, balloon
@@ -98,8 +98,8 @@ deadItem
 moveBalloonRight
 ; move the balloon sprite right a bit
 ; and wrap to screen start if we are at the RHS
-        LD H, (IX +sBalloon.highX)                ; get high X
-        LD L, (IX +sBalloon.lowX)                 ; get low X
+        LD H, (IX +sBalloon.highX)          ; get high X
+        LD L, (IX +sBalloon.lowX)           ; get low X
 
 ; a pending balloon may decide to continue right
 ; therefore we need this entry point here
@@ -114,29 +114,29 @@ balloonR
         LD H, 0                             ; LHS of screen
         LD L, 0                             ; LHS of screen
 storeX
-        LD (IX +sBalloon.highX), H                ; set new high X
-        LD (IX +sBalloon.lowX), L                 ; set new low X
+        LD (IX +sBalloon.highX), H          ; set new high X
+        LD (IX +sBalloon.lowX), L           ; set new low X
 
 endBalloonRight
 ; here we adj how long the balloon is going
 ; to continue going up or down
-        LD A, (IX +sBalloon.vDelay)                ; get delay
+        LD A, (IX +sBalloon.vDelay)         ; get delay
         INC A                               ; add 1
         AND 7                               ; limit 0-7
-        LD (IX +sBalloon.vDelay), A                ; save it
+        LD (IX +sBalloon.vDelay), A         ; save it
         AND A                               ; is it 0
         JR NZ, balloonYCng1                 ; jump if Not
         CALL random
         AND 7
         OR 3
         LD (IX +sBalloon.vDelay), A
-        LD A, (IX +sBalloon.swoop)                ; get up/down index
+        LD A, (IX +sBalloon.swoop)          ; get up/down index
         INC A                               ; add 1
         AND %00011111                       ; limit 0-31
-        LD (IX +sBalloon.swoop), A                ; save it
+        LD (IX +sBalloon.swoop), A          ; save it
 
 balloonYCng1
-        LD A, (IX +sBalloon.swoop)                ; get up/down index again !
+        LD A, (IX +sBalloon.swoop)          ; get up/down index again !
         LD HL, balloonSwoop                 ; point to swooping data
         ADD HL, A                           ; add index
         LD A, (HL)                          ; get up/down value
@@ -179,7 +179,7 @@ skull1
         JR skullY
 skullX
         LD HL, (spriteX)                    ; get Paul's X coord
-        LD E, (IX +sBalloon.lowX)                 ; get Skulls X coord
+        LD E, (IX +sBalloon.lowX)           ; get Skulls X coord
         LD D, (IX +sBalloon.highX)
         SBC HL, DE                          ; subtract Skull X from Paul's X
         JR C, SkullLeft                     ; Skull was greater, so move Left
@@ -218,8 +218,8 @@ itemFalling
 ; is now falling to the ground
 ; ensure X is such that when landed, it can be collected
 ; i.e. >=24 <=280 (%00011000 - %100011000)
-        LD L, (IX +sBalloon.lowX)                 ; get the
-        LD H, (IX +sBalloon.highX)                ; x co-ord
+        LD L, (IX +sBalloon.lowX)           ; get the
+        LD H, (IX +sBalloon.highX)          ; x co-ord
         LD A, H                             ; get high byte
         AND A                               ; is HL > 255
         JR Z, p2                            ; branch if not
