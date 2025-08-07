@@ -401,7 +401,8 @@ endProg
         AND %11111110           ; just turn off bit 0 to disable sprites
         NEXTREG $15, A          ; do the write
 
-        LD A, 255
+        ; turn off sound from all 3 AY chips
+        LD A, 255                
         LD BC, AYSelect
         OUT (C), A
         LD D,7
@@ -431,13 +432,12 @@ endProg
         LD BC, AYrw
         OUT (C), A
 
-
         CALL ULAon
-        RET                      ; return to basic
+        RET
 
 killSprites
-        LD A, 0
-        LD B, 127
+        LD A, 0                         ; start at sprite 0
+        LD B, 127                       ; loop for all 127 sprites
 KS1
         NEXTREG $34, A
         NEXTREG $35, 0
@@ -449,3 +449,117 @@ KS1
         INC A
         DJNZ KS1
         RET
+
+setupBalloon
+             LD IX, balloonSpr              ; point to balloon data
+             LD A, (balloonSprCnt)
+             LD B, A
+             LD C, 0
+setupBalloon1
+             CALL createBalloon
+             LD DE, sBalloon
+             ADD IX, DE
+             INC C
+             DJNZ setupBalloon1
+
+             LD A, 255
+             LD (IX +sBalloon.pattern), A
+             LD A, (maxOnScreen)
+             INC A
+             LD (balloonNext), A
+             RET
+
+createBalloon
+             LD A, C                        ; get sprite index
+             LD (IX +sBalloon.index), A           ; set in balloon data
+
+             CALL randomY                   ; get a random Y coord in A
+             LD (IX +sBalloon.lowY), A            ; set in balloon data
+             LD A, 0                        ; set the high Y coord byte to 0
+             LD (IX +sBalloon.highY), A           ; set in balloon data
+
+             CALL random                    ; get a random number in A
+             AND %00011111                  ; limit to 0-31
+             LD (IX +sBalloon.swoop), A           ; set in balloon data
+
+             ; this determines how long it will take
+             ; before the balloon auto pops
+             ; and turns into a skull
+             LD A, 255                      ; initialise low byte pop delay
+             LD (IX +sBalloon.popDelayL), A       ; set it
+             LD A, C                        ; initialise high byte pop delay
+             ADD 2                          ; use balloon index + 1
+             SLA A
+             LD (IX +sBalloon.popDelayH), A       ; set it
+
+             LD A, 0                        ;
+             LD (IX +sBalloon.landValue), A
+
+             LD A, (maxOnScreen)
+             CP B
+             JR NC, offScreen
+
+onScreen
+             LD A, balloon                  ; on screen, so pattern is balloon
+             LD (IX +sBalloon.pattern), A
+
+             CALL randomX                   ; get a random X coord in HL
+             LD (IX +sBalloon.lowX), L            ; set in balloon data
+             LD (IX +sBalloon.highX), H           ; set in balloon data
+             JR setupEnd
+
+offScreen
+             LD A, blank                    ; off screen, so pattern is blank
+             LD (IX +sBalloon.pattern), A
+             LD HL, 0                       ; set X as 0
+             LD (IX +sBalloon.lowX), L            ; set in balloon data
+             LD (IX +sBalloon.highX), H           ; set in balloon data
+             JR setupEnd
+
+setupEnd
+; get a random number 0-15
+; item will be assigned as follows
+; 07 blank      38%  0 -  5
+; 24 points     24%  6 -  9
+; 16 apple      24% 10 - 13
+; 12 heart       7%      14
+; 28 dynamite    7%      15
+        LD A, B                             ; get the count of balloons
+        DEC A                               ; are we on the last one
+        JR Z, assignKey                     ; branch if so
+assignItem1
+        CALL random1
+        AND %00001111
+        LD HL, items
+        ADD HL, A
+        LD A, (HL)
+        LD (IX +sBalloon.newSprite), A       ; may spawn into
+
+        RET
+assignKey
+        LD A, (keyCnt)
+        AND A
+        JR NZ, assignItem1
+        LD A, key
+        LD (IX +sBalloon.newSprite), A       ; may spawn into
+
+        RET
+
+items
+        DB blank
+        DB blank
+        DB blank
+        DB blank
+        DB blank
+        DB blank
+        DB points
+        DB points
+        DB points
+        DB points
+        DB apple
+        DB apple
+        DB apple
+        DB apple
+        DB heart
+        DB dynamite
+
