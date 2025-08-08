@@ -110,16 +110,16 @@ balloonR
         LD A, H                             ; prepare to test X bounds
         AND A                               ; are we <= 255
         JR Z, storeX                        ; branch if so, no wrap needed
-        LD A, L                             ; prepare to test <320
-        AND %01000000                       ; are we <= 320
+        ;LD A, L                             ; prepare to test <320
+        ;AND %01000000                       ; are we <= 320
+        BIT 6, L                            ; are we <=320
         JR Z, storeX                        ; branch if so, no wrap needed
-        LD H, 0                             ; LHS of screen
-        LD L, 0                             ; LHS of screen
+        LD HL, 0                             ; LHS of screen
+        ;LD L, 0                             ; LHS of screen
 storeX
         LD (IX +sBalloon.highX), H          ; set new high X
         LD (IX +sBalloon.lowX), L           ; set new low X
 
-endBalloonRight
 ; here we adj how long the balloon is going
 ; to continue going up or down
         LD A, (IX +sBalloon.vDelay)         ; get delay

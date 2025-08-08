@@ -21,7 +21,7 @@ INCLUDE "spriteDisplay.inc"
 ; ----------------------------
 MAINPROG
 ; this stuff is only called ONCE
-;        NEXTREG $7, 2                       ; set speed to 14mhz
+        NEXTREG $7, 3                       ; set speed to 28mhz
         CALL spriteSetup                    ; initialise graphics in c.odn
         LD HL, $5c78                        ; frame counter for rnd seed
         LD A, (HL)
