@@ -1,15 +1,11 @@
-chkCollide
+chkSpriteCollision
 ; get Paul's 1bit bitmap depending on his direction
         LD A, (manPat)
-        AND A
-        JR Z, cMBM1
-        JR cMBM2
-cMBM1
-        LD HL, paulbmpR
-        LD (manBitmap), HL
-        JR chkCollide1
-cMBM2
         LD HL, paulbmpL
+        AND A
+        JR NZ, storePaulbmp
+        LD HL, paulbmpR
+storePaulbmp
         LD (manBitmap), HL
 
 chkCollide1
@@ -18,12 +14,9 @@ chkCollide1
 
 chkSprite
 ; for each "balloon" or until collision is detected
-; - reset collision ind (0=no hit, 1=hit)
 ; - exit if end marker
 ; - call collision check routine
-; - check if collision and loop if not, otherwise return IX = balloon hit
-        XOR A
-        LD (collisionInd), A
+; - check if collision (carry set) and loop if not, otherwise return IX = balloon hit
 
         LD A, (IX +sBalloon.pattern)
         CP 255
@@ -31,10 +24,7 @@ chkSprite
 
         CP blank
         CALL NZ, chkSprite1
-
-        LD A, (collisionInd)
-        AND A
-        RET NZ
+        RET C                               ; exit if carry, i.e. hit detected
         LD DE, sBalloon
         ADD IX, DE
         JR chkSprite
@@ -67,9 +57,7 @@ chkSprite1
 
 collideSkull
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC
 
         LD A, soundHitskull
         CALL playsound
@@ -86,9 +74,7 @@ collideSkull
 
 collideHeart
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC
 
         LD A, 15
         LD (health), A
@@ -100,9 +86,7 @@ collideHeart
 
 collideApple
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC
 
         LD A, 15
         LD (health), A
@@ -110,9 +94,7 @@ collideApple
 
 collideKey
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC
 
         LD A, 1
         LD (keyCnt), A
@@ -121,9 +103,7 @@ collideKey
 
 collidePoints
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC        
 
         LD HL, (score)
         ADD HL, 100
@@ -133,9 +113,7 @@ collidePoints
 
 collideDynamite
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC
 
         LD A, 1
         LD (dynamiteCnt), A
@@ -144,9 +122,7 @@ collideDynamite
 
 collideBalloon
         CALL CS1
-        LD A, (collisionInd)
-        AND A
-        RET Z
+        RET NC
 
         LD HL, (score)
         ADD HL, 50
@@ -274,6 +250,7 @@ BROP
         DEC C
         JR NZ, BROP
         POP IX
+        XOR A                               ; reset carry, no hit
         RET
 
 balloonLeftOfPaul
@@ -305,12 +282,12 @@ BLOP
         DEC C
         JR NZ, BLOP
         POP IX
+        XOR A                               ; reset carry, not hit
         RET
 
 myhit
         POP IX
-        LD A, 1
-        LD (collisionInd), A
+        SCF                                 ; signify a hit has occured
         RET
 
 absHL
@@ -337,7 +314,6 @@ absHL2
 
 manBitmap    DW 00                          ; location of our man bitmap
 spriteBitmap DW 00                          ; location of sprite bitmap being checked
-collisionInd DB 0
 collisionInx DW $00
 
 collideAction

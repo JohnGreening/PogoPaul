@@ -269,7 +269,7 @@ paulFinish
         AND B                               ; if press and dynamite
         CALL NZ, killSkulls                 ; kill the skulls
 
-        CALL chkCollide                     ; check balloon collision
+        CALL chkSpriteCollision             ; check balloon collision
         CALL showHealth
         LD A, (health)                      ; get health value
         AND A                               ; see if it's zero
