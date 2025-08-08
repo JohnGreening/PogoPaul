@@ -29,9 +29,8 @@ chkSprite
         CP 255
         RET Z
 
-        PUSH IX
-        CALL chkSprite1
-        POP IX
+        CP blank
+        CALL NZ, chkSprite1
 
         LD A, (collisionInd)
         AND A
@@ -44,8 +43,6 @@ chkSprite
 ;--------------------------------------------------------------------------
 ; A is passed with "balloon" sprite pattern to check against
 chkSprite1
-        CP blank
-        RET Z
 
 ; point to collideAction table and pick up routine to jump to in DE/HL
 ; and the "balloon" bitmap to use in BC
@@ -53,6 +50,9 @@ chkSprite1
         ADD A, A
         LD HL, collideAction
         ADD HL, A
+
+        ; get into DE the routine to call
+        ; get into BC the 1 bit bitmap to use
         LD E, (HL)
         INC HL
         LD D, (HL)
@@ -62,6 +62,7 @@ chkSprite1
         LD B, (HL)
         EX DE, HL
 
+        ; swap DE and HL to do the jump to routine
         JP (HL)
 
 collideSkull
@@ -251,6 +252,7 @@ balloonRightOfPaul
         CP 16
         RET NC
 
+        PUSH IX
         LD B, A
         LD IX, (manBitmap)
         LD IY, (spriteBitmap)
@@ -271,6 +273,7 @@ BROP
         ADD IY, DE
         DEC C
         JR NZ, BROP
+        POP IX
         RET
 
 balloonLeftOfPaul
@@ -280,6 +283,7 @@ balloonLeftOfPaul
         CP 16
         RET NC
 
+        PUSH IX
         LD B, A
         LD IX, (manBitmap)
         LD IY, (spriteBitmap)
@@ -300,9 +304,11 @@ BLOP
         ADD IY, DE
         DEC C
         JR NZ, BLOP
+        POP IX
         RET
 
 myhit
+        POP IX
         LD A, 1
         LD (collisionInd), A
         RET
