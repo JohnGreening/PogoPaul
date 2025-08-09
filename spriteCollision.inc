@@ -217,19 +217,42 @@ doXDiff
         LD HL, (spriteX)
         LD E, (IX +sBalloon.lowX)
         LD D, (IX +sBalloon.highX)
-        SBC HL, DE
-        BIT 7, H
-        JR Z, balloonLeftOfPaul
 
-balloonRightOfPaul
-        ; balloon X > Paul X
-        ; hence -ve diff and bit 7 of H was set
-        CALL absHL
+        OR A
+        SBC HL, DE
+        JR C, .negDelta
+
+.posDelta
+        LD A, H
+        OR A
+        RET NZ
+
+        LD A, L
         CP 16
         RET NC
 
-        PUSH IX
         LD B, A
+        OR A
+        JR balloonLeftOfPaul
+
+.negDelta
+        LD A, H
+        CP $FF
+        RET NZ
+
+        LD A, L
+        NEG
+        CP 16
+        RET NC
+
+        LD B, A
+        OR A
+
+balloonRightOfPaul
+        ; balloon X > Paul X
+        ; B is holding the X delta
+        ; C is holding pixel lines to test
+        PUSH IX
         LD IX, (manBitmap)
         LD IY, (spriteBitmap)
 BROP
@@ -255,13 +278,9 @@ BROP
 
 balloonLeftOfPaul
         ; balloon X <= Paul X
-        ; hence +ve diff and bit 7 of H was 0
-        CALL absHL
-        CP 16
-        RET NC
-
+        ; B is holding the X delta
+        ; C is holding pixel lines to test
         PUSH IX
-        LD B, A
         LD IX, (manBitmap)
         LD IY, (spriteBitmap)
 BLOP
@@ -290,25 +309,25 @@ myhit
         SCF                                 ; signify a hit has occured
         RET
 
-absHL
-        ; dirty routine to return ABS(HL)
-        ; L returned as result or 255 if clearly out of range
-        XOR A                               ; zero A and clear carry flag
-        BIT 7, H                            ; was subtraction -ve
-        JR Z, absHL1                        ; branch if not
-        SUB L                               ; do ABS(HL)
-        LD L, A
-        SBC A, A
-        SUB H
-        LD H, A
-absHL1
-        LD A, H                             ; get high byte and hence see if
-        AND A                               ; result was > 255
-        JR Z, absHL2                        ; branch if not
-        LD L, 255                           ; set a dummy value
-absHL2
-        LD A, L                             ; return L
-        RET
+;absHL
+;        ; dirty routine to return ABS(HL)
+;        ; L returned as result or 255 if clearly out of range
+;        XOR A                               ; zero A and clear carry flag
+;        BIT 7, H                            ; was subtraction -ve
+;        JR Z, absHL1                        ; branch if not
+;        SUB L                               ; do ABS(HL)
+;        LD L, A
+;        SBC A, A
+;        SUB H
+;        LD H, A
+;absHL1
+;        LD A, H                             ; get high byte and hence see if
+;        AND A                               ; result was > 255
+;        JR Z, absHL2                        ; branch if not
+;        LD L, 255                           ; set a dummy value
+;absHL2
+;        LD A, L                             ; return L
+;        RET
 
 
 
