@@ -20,10 +20,12 @@ keyDown
         IN A, (C)
         BIT 1, A
         JR NZ, keyUp
+
+        ; get strength value and branch if already 0
+        ; otherwise store decrement and show power
         LD A, (strengthInd)
-        CP 0
-        JR Z, keyUp
-        DEC A
+        SUB 1
+        JR C, keyUp
         LD (strengthInd), A
         CALL showPower
 keyUp
@@ -31,6 +33,7 @@ keyUp
         IN A, (C)
         BIT 0, A
         JR NZ, showPaul0
+        
         LD A, (strengthInd)
         CP 15
         JR Z, showPaul0
