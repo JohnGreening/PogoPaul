@@ -42,6 +42,7 @@ keyUp
 
 showPaul0
         LD IX, manSprite                    ; point to Paul data
+;        LD DE, spriteY
         LD A, (riseCnt)                     ; determine vertical direction
         DEC A
         JP M, paulFalling
@@ -50,10 +51,16 @@ showPaul0
 
 paulRising
         DEC (IX +sBalloon.lowY)             ; otherwise move Paul up
+;        LD A, (DE)
+;        DEC A
+;        LD (DE), A
         JR doLeftRight                      ; end of rise processing
 
 paulFalling
         INC (IX +sBalloon.lowY)             ; move Paul down
+;        LD A, (DE)
+;        INC A
+;        LD (DE), A
 
 doLeftRight
 ; so here we decide if Paul is allowed to move left/right
@@ -67,7 +74,7 @@ doLeftRight
         LD A, (leftRightDelay)              ; set L/R countdown default
         LD (leftRightCount), A              ; save it
 
-        LD A, (IX +sBalloon.dirH)           ; get the horizontal movement
+        LD A, (spriteDirH)                  ; get the horizontal movement
         CP nothing                          ; is it 0
         JR Z, leftrightEnd                  ; 0 = up/down only
         CP left                             ; is it 1
@@ -84,7 +91,10 @@ paulRight
         JR leftrightEnd
 
 leftrightEnd
+;        PUSH DE
         CALL paulTileCollision
+;        POP DE
+
 ;        LD IY, tileMapData +837
 ;        LD A, (hitind1)
 ;        CALL DispA
@@ -164,6 +174,9 @@ hitRising
 hitRising1
         CALL reverseX1                      ; reverse previous left/right
         INC (IX +sBalloon.lowY)             ; move Paul down
+        ;LD A, (DE)
+        ;INC A
+        ;LD (DE), A
 
         XOR A                               ; Paul is now falling
         LD (riseCnt), A                     ; set it
@@ -173,7 +186,7 @@ hitRising1
         JP Z, paulFinish
 
         XOR A
-        LD (IX +sBalloon.dirH), A
+        LD (spriteDirH), A
         JP paulFinish
 
 
@@ -183,7 +196,7 @@ hitFalling
         LD B, A
         LD A, (hitRind)
         LD C, A
-        LD A, (IX +sBalloon.pattern)
+        LD A, (manPat)
         CP facingLeft
         JR Z, fallingLeft
         JR fallingRight
@@ -222,9 +235,12 @@ FRhitL
         JR FLEnd
 
 FLEnd
+     ;   LD A, (DE)
+     ;   DEC A
+     ;   LD (DE), A
         DEC (IX +sBalloon.lowY)
         LD A, nothing
-        LD (IX +sBalloon.dirH), A
+        LD (spriteDirH), A
         LD A, (hitind)
         CP 31
         JR Z, bounce
@@ -243,6 +259,13 @@ bounce
         LD (sound3Dur), A                   ; set duration related to strength
         LD A, soundBounce
         CALL playsound
+
+    ;    LD A, (DE)
+    ;    DEC A
+    ;    LD (DE), A
+    ;    LD HL, (spriteY)
+    ;    DEC HL
+    ;    LD (spriteY), HL
 
         DEC (IX +sBalloon.lowY)             ; move Paul up
 
@@ -322,9 +345,9 @@ keyLeft
         JR NZ, keyRight
 
         LD A, facingLeft
-        LD (IX +sBalloon.pattern), A
+        LD (manPat), A
         LD A, left
-        LD (IX +sBalloon.dirH), A
+        LD (spriteDirH), A
 
 keyRight
         LD BC, $dffe                        ; keys Y U I O P
@@ -333,36 +356,29 @@ keyRight
         JR NZ, keyEnd
 
         LD A, facingRight
-        LD (IX +sBalloon.pattern), A
+        LD (manPat), A
         LD A, right
-        LD (IX +sBalloon.dirH), A
+        LD (spriteDirH), A
 
 keyEnd
         RET
 
 movePaulRight
-        LD L, (IX +sBalloon.lowX)           ; add 1 to X coord
-        LD H, (IX +sBalloon.highX)          ; i.e. move RIGHT
+        LD HL, (spriteX)
         INC HL
-        LD (IX +sBalloon.lowX), L
-        LD (IX +sBalloon.highX), H
+        LD (spriteX), HL
         RET
 
 movePaulLeft
-        LD L, (IX +sBalloon.lowX)           ; deduct 1 from X coord
-        LD H, (IX +sBalloon.highX)          ; i.e. move LEFT
+        LD HL, (spriteX)
         DEC HL
-        LD (IX +sBalloon.lowX), L
-        LD (IX +sBalloon.highX), H
+        LD (spriteX), HL
         RET
 
 reverseX1
- ;       LD A, (IX +sBalloon.dirH)
-        LD A, (IX +sBalloon.pattern)
+        LD A, (manPat)
         CP facingLeft
- ;       CP left
         JR Z, movePaulRight
- ;       CP right
         CP facingRight
         JR Z, movePaulLeft
         RET

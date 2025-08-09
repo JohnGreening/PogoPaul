@@ -309,28 +309,6 @@ myhit
         SCF                                 ; signify a hit has occured
         RET
 
-;absHL
-;        ; dirty routine to return ABS(HL)
-;        ; L returned as result or 255 if clearly out of range
-;        XOR A                               ; zero A and clear carry flag
-;        BIT 7, H                            ; was subtraction -ve
-;        JR Z, absHL1                        ; branch if not
-;        SUB L                               ; do ABS(HL)
-;        LD L, A
-;        SBC A, A
-;        SUB H
-;        LD H, A
-;absHL1
-;        LD A, H                             ; get high byte and hence see if
-;        AND A                               ; result was > 255
-;        JR Z, absHL2                        ; branch if not
-;        LD L, 255                           ; set a dummy value
-;absHL2
-;        LD A, L                             ; return L
-;        RET
-
-
-
 manBitmap    DW 00                          ; location of our man bitmap
 spriteBitmap DW 00                          ; location of sprite bitmap being checked
 collisionInx DW $00

@@ -2,6 +2,7 @@
 ; Draw Pogo Power Meter (15 bars)
 ; --------------------------------
 showPower:
+        PUSH DE
         LD A, (strengthInd)         ; A = current strength (1–16)
         LD E, A                     ; Save for use in loop
         LD B, 15                    ; Number of bars to draw
@@ -32,7 +33,7 @@ showPower:
         LD A, C
         ADD HL, A                   ; Move to next row
         DJNZ .drawBarLoop           ; Loop
-
+        POP DE
         RET
 
 
@@ -44,6 +45,7 @@ showHealth:
         BIT 0, A                      ; Is health display disabled?
         RET NZ                        ; If so, skip display
 
+        PUSH DE
         LD A, (health)               ; Get current health value
         LD E, A                      ; Store for later
         LD B, 15                     ; Number of bars
@@ -74,7 +76,7 @@ showHealth:
         LD A, C
         ADD HL, A                    ; Move to next row
         DJNZ .drawHealthBar          ; Loop for all 15 bars
-
+        POP DE
         RET
 
 showScore
