@@ -9,14 +9,12 @@ showPaul1
         RET
 
 showPaul
-        LD A, (keyDelay)                    ; we only intercept keystrokes every so often    
-        DEC A
-        LD (keyDelay), A
+        LD HL, keyDelay                     ; we only allow up/down to be pressed every few frames
+        DEC (HL)
         JR NZ, showPaul0
 
         LD A, keyDelayInit
-        LD (keyDelay), A
-
+        LD (HL), A
 keyDown
         LD BC, $fefe                        ; read keyboard up/down
         IN A, (C)
@@ -66,13 +64,12 @@ doLeftRight
 ; so here we decide if Paul is allowed to move left/right
 ; it is restricted so that movement resembles a sin wave
 ; so only when the counter is 0, movement is allowed
-        LD A, (leftRightCount)              ; get L/R countdown
-        DEC A                               ; decrease it
-        LD (leftRightCount), A              ; save it
+        LD HL, leftRightCount
+        DEC (HL)
         JP NZ, leftrightEnd                 ; if not theres no horizontal mvmt
 
         LD A, (leftRightDelay)              ; set L/R countdown default
-        LD (leftRightCount), A              ; save it
+        LD (HL), A
 
         LD A, (spriteDirH)                  ; get the horizontal movement
         CP nothing                          ; is it 0
@@ -350,8 +347,8 @@ keyLeft
         LD (spriteDirH), A
 
 keyRight
-        LD BC, $dffe                        ; keys Y U I O P
-        IN A, (C)
+        ;LD BC, $dffe                        ; keys Y U I O P
+        ;IN A, (C)
         BIT 0, A
         JR NZ, keyEnd
 
