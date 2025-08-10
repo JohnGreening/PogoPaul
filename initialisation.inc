@@ -225,3 +225,10 @@ nib21
         SLA E
         SET 0, E
         JR nib2Done
+
+copyLevelData
+        LD HL, level0
+        LD DE, roomData
+        LD BC, levelData * (splashLevel +1)
+        LDIR
+        RET

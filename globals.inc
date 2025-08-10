@@ -15,8 +15,8 @@ pattern     byte                            ; sprite pattern
     ENDS
 
 balloonMaxCount equ 21
-balloonSpr defs balloon * balloonMaxCount
-balloonTemp defs balloon
+balloonSpr defs sBalloon * balloonMaxCount
+balloonTemp defs sBalloon
 
 balloonSprCnt  DB 0                         ; balloon count set for level
 maxOnScreen    DB 0                         ; max balloons allowed on screen at a time, set for level

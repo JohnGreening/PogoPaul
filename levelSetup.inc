@@ -216,35 +216,48 @@ createLevel
 ; A passed with room number 0-9 to create
         LD IY, roomData                     ; point to base room/level data
         LD E, A                             ; get the room number into E
-        LD D, levelLen                      ; get the room data length
+        LD D, levelData                     ; get the room data length
         MUL D, E                            ; multiply
         ADD IY, DE                          ; hence room data for A
-        LD E, (IY +0)                       ; get layout low address in E
-        LD D, (IY +1)                       ; get layout high address in D
+        LD E, (IY +levelData.dataAddrL)     ; get layout low address in E
+        LD D, (IY +levelData.dataAddrH)     ; get layout high address in D
 
-        LD A, (IY +2)                       ; get balloon count for level
+        LD A, (IY +levelData.balloonCount)  ; get balloon count for level
         LD (balloonSprCnt), A               ; save it
 
-        LD A, (IY +3)                       ; get max on screen for level
+        LD A, (IY +levelData.maxOnScreen)   ; get max on screen for level
         LD (maxOnScreen), A                 ; save it
 
-        LD A, (IY +4)                       ; get special features
+        LD A, (IY +levelData.featureByte)   ; get special features
         LD (features), A                    ; sav it
 
         LD IX, manSprite                    ; ready to set initial Paul data
-        LD L, (IY +5)                       ; X coord
-        LD H, (IY +6)
+        LD L, (IY +levelData.paulXL)        ; X coord
+        LD H, (IY +levelData.paulXH)
         LD (IX +sBalloon.lowX), L
         LD (IX +sBalloon.highX), H
-        LD L, (IY +7)                       ; Y coord
-        LD H, (IY +8)
+        LD L, (IY +levelData.paulYL)        ; Y coord
+        LD H, (IY +levelData.paulYH)
         LD (IX +sBalloon.lowY), L
         LD (IX +sBalloon.highY), H
 
         CALL createTileMap
         RET
 
-roomData
+
+        struct levelData
+dataAddrL       byte
+dataAddrH       byte
+balloonCount    byte
+maxOnScreen     byte
+featureByte     byte
+paulXL          byte
+paulXH          byte
+paulYL          byte
+paulYH          byte
+        ENDS
+
+roomData defs levelData * (splashLevel +1)
 ; tilemap location of room
 ; target balloons to pop
 ; feature byte
@@ -257,7 +270,7 @@ roomData
 ;   bit 1
 ;   bit 0 - 1 = disable keyboard for level (splash instruction screen)
 
-; level 0
+level0
         DW page000                          ; address of screen data
         DB 10                               ; level balloon count
         DB 5                                ; level max on screen
