@@ -36,7 +36,7 @@ waitSpace1
         JR NZ, waitSpace                    ; branch if not pressed
         LD A, 12
         LD (volume), A
-        LD A, 0
+        LD A, 0                             ; starting level
         LD (LEVEL), A
         JP commonInit
 

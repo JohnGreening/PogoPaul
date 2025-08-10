@@ -75,11 +75,14 @@ doLeftRight
         LD (HL), A
 
         LD A, (spriteDirH)                  ; get the horizontal movement
-        CP nothing                          ; is it 0
+        AND A
+        ;CP nothing                          ; is it 0
         JR Z, leftrightEnd                  ; 0 = up/down only
-        CP left                             ; is it 1
+        DEC A
+        ;CP left                             ; is it 1
         JR Z, paulLeft                      ; 1 = left
-        CP right                            ; is it 2
+        DEC A
+        ;CP right                            ; is it 2
         JR Z, paulRight                     ; 2 = right
         CALL keySpace
 paulLeft
