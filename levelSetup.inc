@@ -244,22 +244,7 @@ createLevel
         CALL createTileMap
         RET
 
-
-        struct levelData
-dataAddrL       byte
-dataAddrH       byte
-balloonCount    byte
-maxOnScreen     byte
-featureByte     byte
-paulXL          byte
-paulXH          byte
-paulYL          byte
-paulYH          byte
-        ENDS
-
 roomData defs levelData * (splashLevel +1)
-; tilemap location of room
-; target balloons to pop
 ; feature byte
 ;   bit 7
 ;   bit 6

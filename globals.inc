@@ -1,3 +1,15 @@
+        struct levelData
+dataAddrL       byte
+dataAddrH       byte
+balloonCount    byte
+maxOnScreen     byte
+featureByte     byte
+paulXL          byte
+paulXH          byte
+paulYL          byte
+paulYH          byte
+        ENDS
+        
     struct sBalloon
 index       byte                            ; index for sprite system 0-99
 lowX        byte                            ; x coord lsb
