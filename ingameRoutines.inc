@@ -2,11 +2,11 @@
 ; Draw Pogo Power Meter (15 bars)
 ; --------------------------------
 showPower:
-        LD A, (strengthInd)         ; A = current strength (1–16)
-        LD E, A                     ; Save for use in loop
-        LD B, 15                    ; Number of bars to draw
-        LD C, 40                    ; Tile row stride
-        LD HL, tileMapData + 121    ; Start position (top of power bar)
+        LD A, (strengthInd)                 ; A = current strength (1–16)
+        LD E, A                             ; Save for use in loop
+        LD B, 15                            ; Number of bars to draw
+        LD C, 40                            ; Tile row stride
+        LD HL, tileMapData + 121            ; Start position (top of power bar)
 
         ; Inlined getPowerColour:
         LD D, boxRed
@@ -18,20 +18,20 @@ showPower:
         LD D, boxGreen
 
 .drawBarLoop:
-        LD A, E                     ; Get strength
-        CP B                        ; Is strength ≥ current bar number?
-        JR NC, .useColourTile       ; If so, draw color
-        LD A, boxBlank              ; Otherwise, draw blank
+        LD A, E                             ; Get strength
+        CP B                                ; Is strength ≥ current bar number?
+        JR NC, .useColourTile               ; If so, draw color
+        LD A, boxBlank                      ; Otherwise, draw blank
         JR .storeTile
 
 .useColourTile:
-        LD A, D                     ; Use power colour
+        LD A, D                             ; Use power colour
 
 .storeTile:
-        LD (HL), A                  ; Write tile
+        LD (HL), A                          ; Write tile
         LD A, C
-        ADD HL, A                   ; Move to next row
-        DJNZ .drawBarLoop           ; Loop
+        ADD HL, A                           ; Move to next row
+        DJNZ .drawBarLoop                   ; Loop
         RET
 
 
@@ -39,18 +39,18 @@ showPower:
 ; Draw Paul's Health Meter (15 bars)
 ; --------------------------------
 showHealth:
-        LD A, (features)              ; Get page features
-        BIT 0, A                      ; Is health display disabled?
-        RET NZ                        ; If so, skip display
+        LD A, (features)                    ; Get page features
+        BIT 0, A                            ; Is health display disabled?
+        RET NZ                              ; If so, skip display
 
-        LD A, (health)               ; Get current health value
-        LD E, A                      ; Store for later
-        LD B, 15                     ; Number of bars
-        LD C, 40                     ; Tile row stride
-        LD HL, tileMapData + 158     ; Start of health bar
+        LD A, (health)                      ; Get current health value
+        LD E, A                             ; Store for later
+        LD B, 15                            ; Number of bars
+        LD C, 40                            ; Tile row stride
+        LD HL, tileMapData + 158            ; Start of health bar
 
         ; Inlined healthColour logic
-        LD D, boxGreen               ; Default to green
+        LD D, boxGreen                      ; Default to green
         CP 12
         JR NC, .drawHealthBar
         LD D, boxAmber
@@ -59,20 +59,20 @@ showHealth:
         LD D, boxRed
 
 .drawHealthBar:
-        LD A, E                      ; E = health
+        LD A, E                             ; E = health
         CP B
-        JR NC, .useHealthTile        ; If health ≥ bar number
+        JR NC, .useHealthTile               ; If health ≥ bar number
         LD A, boxBlank
         JR .storeTile
 
 .useHealthTile:
-        LD A, D                      ; Use health colour tile
+        LD A, D                             ; Use health colour tile
 
 .storeTile:
-        LD (HL), A                   ; Draw tile
+        LD (HL), A                          ; Draw tile
         LD A, C
-        ADD HL, A                    ; Move to next row
-        DJNZ .drawHealthBar          ; Loop for all 15 bars
+        ADD HL, A                           ; Move to next row
+        DJNZ .drawHealthBar                 ; Loop for all 15 bars
         RET
 
 showScore
@@ -106,48 +106,48 @@ showLives
         RET
 
 showDynamite
-        LD A, (dynamiteCnt)
-        LD B, tileCross
-        AND A
-        JR Z, showDynamite1
-        INC B
+        LD A, (dynamiteCnt)                 ; get dynamite count
+        LD B, tileCross                     ; set tile number to be the cross, not tick
+        AND A                               ; test dynamite count
+        JR Z, showDynamite1                 ; branch if none held
+        INC B                               ; set tile number to be the tick
 showDynamite1
-        LD HL, iyDynamite
-        LD (HL), B
+        LD HL, iyDynamite                   ; position for the tick or cross
+        LD (HL), B                          ; set the tile as appropriate
         RET
 showKey
-        LD A, (keyCnt)
-        LD B, tileCross
-        AND A
-        JR Z, showKey1
-        INC B
-        LD A, 0
-        LD HL, tileMapData +917
-        LD (HL), A
+        LD A, (keyCnt)                      ; get current key count                          
+        LD B, tileCross                     ; set tile number to be the cross, not tick
+        AND A                               ; test key count
+        JR Z, showKey1                      ; branch if key not caught yet
+        INC B                               ; set tile number to be the tick
+        LD A, 0                             ; set A = blank tile (exit for Paul to escape)
+        LD HL, tileMapData +917             ; exit is 3 blank tiles for 4 lines
+        LD (HL), A                          ; exit line #1
         INC HL
         LD (HL), A
         INC HL
         LD (HL), A
         ADD HL, 38
-        LD (HL), A
+        LD (HL), A                          ; exit line #2
         INC HL
         LD (HL), A
         INC HL
         LD (HL), A
         ADD HL, 38
-        LD (HL), A
+        LD (HL), A                          ; exit line #3
         INC HL
         LD (HL), A
         INC HL
         LD (HL), A
         ADD HL, 38
-        LD (HL), A
+        LD (HL), A                          ; exit line #4
         INC HL
         LD (HL), A
         INC HL
         LD (HL), A
 showKey1
-        LD HL, iyKey
-        LD (HL), B
+        LD HL, iyKey                        ; position for the tick or cross
+        LD (HL), B                          ; set the tile as appropriate
         RET
 

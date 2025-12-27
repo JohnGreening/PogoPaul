@@ -1,21 +1,65 @@
 balloonUpt
-;        RET
+     ;   RET
         LD IX, balloonSpr                   ; point to balloon data
 
 balloonUpt1
-        LD A, (IX +sBalloon.pattern)        ; get pattern
+        LD A, (IX +sBalloon.pattern)        ; get balloon pattern
         LD C, A                             ; save pattern
         CP 255                              ; check for finished marker
         RET Z                               ; exit if done
 
+; balloonAction is just a table of addresses to jump to depending on the 
+; balloon pattern being used. i.e. is it a balloon, object, skull etc
+; actions are :
+;    doBalloon   - regular balloon processing
+;    balloonEnd  - do nothing, just skip
+;    itemFalling - special action to drop item until it hits a floor
+;    skull11     - special skull action
+;    toxic1      - special toxic drop action         
         ADD A, A                            ; each address is 2 bytes
         LD HL, balloonAction                ; get base table
-        ADD HL, A                           ; add offset
-        LD E, (HL)                          ; transfer
-        INC HL                              ; into
-        LD D, (HL)                          ; DE
+        ADD HL, A                           ; add offset and hence point to action needed
+        LD E, (HL)                          ; low address into E
+        INC HL                              ; 
+        LD D, (HL)                          ; high address into D
         EX DE, HL                           ; swap DE into HL
         JP (HL)                             ; jump to action required
+
+balloonAction
+DW balloonEnd                               ; pattern  0
+DW balloonEnd                               ; pattern  1
+DW balloonEnd                               ; pattern  2
+DW balloonEnd                               ; pattern  3
+DW skull1                                   ; Skull pattern
+DW doBalloon                                ; Skull exploding #1
+DW doBalloon                                ; Skull exploding #2
+DW doBalloon                                ; Skull exploding #3
+DW doBalloon                                ; Balloon
+DW doBalloon                                ; Balloon popping #1
+DW doBalloon                                ; Balloon popping #2
+DW doBalloon                                ; Balloon popping #3
+DW itemFalling                              ; Heart falling
+DW balloonEnd                               ; Heart landed
+DW balloonEnd                               ; pattern 14
+DW balloonEnd                               ; pattern 15
+DW itemFalling                              ; Apple falling
+DW balloonEnd                               ; Apple landed
+DW balloonEnd                               ; pattern 18
+DW balloonEnd                               ; pattern 19
+DW itemFalling                              ; Key falling
+DW balloonEnd                               ; Key landed
+DW balloonEnd                               ; pattern 22
+DW balloonEnd                               ; pattern 23
+DW itemFalling                              ; Points falling
+DW balloonEnd                               ; Points landed
+DW balloonEnd                               ; pattern 26
+DW balloonEnd                               ; pattern 27
+DW itemFalling                              ; Dynamite falling
+DW balloonEnd                               ; Dynamite landed
+DW balloonEnd                               ; pattern 30
+DW balloonEnd                               ; pattern 31
+DW balloonEnd                               ; blank sprite
+DW toxic1                                   ; Toxic drop
 
 doBalloon
         LD L, (IX +sBalloon.popDelayL)      ; get the pop delay low byte
@@ -279,44 +323,8 @@ landed
         JR balloonEnd
 
 balloonEnd
-        CALL showSP1
+        CALL showSP1                        ; show the sprite
 
-        LD BC, sBalloon
-        ADD IX, BC
-        JP balloonUpt1
-
-balloonAction
-DW balloonEnd                               ; pattern  0
-DW balloonEnd                               ; pattern  1
-DW balloonEnd                               ; pattern  2
-DW balloonEnd                               ; pattern  3
-DW skull1                                   ; Skull pattern
-DW doBalloon                                ; Skull exploding #1
-DW doBalloon                                ; Skull exploding #2
-DW doBalloon                                ; Skull exploding #3
-DW doBalloon                                ; Balloon
-DW doBalloon                                ; Balloon popping #1
-DW doBalloon                                ; Balloon popping #2
-DW doBalloon                                ; Balloon popping #3
-DW itemFalling                              ; Heart falling
-DW balloonEnd                               ; Heart landed
-DW balloonEnd                               ; pattern 14
-DW balloonEnd                               ; pattern 15
-DW itemFalling                              ; Apple falling
-DW balloonEnd                               ; Apple landed
-DW balloonEnd                               ; pattern 18
-DW balloonEnd                               ; pattern 19
-DW itemFalling                              ; Key falling
-DW balloonEnd                               ; Key landed
-DW balloonEnd                               ; pattern 22
-DW balloonEnd                               ; pattern 23
-DW itemFalling                              ; Points falling
-DW balloonEnd                               ; Points landed
-DW balloonEnd                               ; pattern 26
-DW balloonEnd                               ; pattern 27
-DW itemFalling                              ; Dynamite falling
-DW balloonEnd                               ; Dynamite landed
-DW balloonEnd                               ; pattern 30
-DW balloonEnd                               ; pattern 31
-DW balloonEnd                               ; blank sprite
-DW toxic1                                   ; Toxic drop
+        LD BC, sBalloon                     ; balloon data structure length
+        ADD IX, BC                          ; add and hence point to next balloon
+        JP balloonUpt1                      ; loop

@@ -1,12 +1,12 @@
 chkSpriteCollision
 ; get Paul's 1bit bitmap depending on his direction
-        LD A, (manPat)
-        LD HL, paulbmpL
-        AND A
-        JR NZ, storePaulbmp
-        LD HL, paulbmpR
+        LD A, (manPat)                      ; get current sprite pattern
+        LD HL, paulbmpL                     ; default 1bit bitmap to Paul facing left
+        AND A                               ; test current sprite pattern
+        JR NZ, storePaulbmp                 ; branch if facing left 
+        LD HL, paulbmpR                     ; otherwise set 1bit bitmap to Paul facing right
 storePaulbmp
-        LD (manBitmap), HL
+        LD (manBitmap), HL                  ; store correct 1bit bitmap
 
 chkCollide1
 ; point to start of balloon data
@@ -25,10 +25,46 @@ chkSprite
         CP blank
         CALL NZ, chkSprite1
         RET C                               ; exit if carry, i.e. hit detected
+        
         LD DE, sBalloon
         ADD IX, DE
         JR chkSprite
 
+collideAction
+DW noAction, $00                            ; sprite  0
+DW noAction, $00                            ; sprite  1
+DW noAction, $00                            ; sprite  2
+DW noAction, $00                            ; sprite  3
+DW collideSkull, skullbmp                   ; skull
+DW noAction, $00                            ; sprite  5
+DW noAction, $00                            ; sprite  6
+DW noAction, $00                            ; sprite  7
+DW collideBalloon, balloonbmp               ; balloon
+DW noAction, $00                            ; sprite  9
+DW noAction, $00                            ; sprite 10
+DW noAction, $00                            ; sprite 11
+DW noAction, $00                            ; sprite 12
+DW collideHeart, heartbmp                   ; heart landed
+DW noAction, $00                            ; sprite 14
+DW noAction, $00                            ; sprite 15
+DW noAction, $00                            ; sprite 16
+DW collideApple, applebmp                   ; apple landed
+DW noAction, $00                            ; sprite 18
+DW noAction, $00                            ; sprite 19
+DW noAction, $00                            ; sprite 20
+DW collideKey, keybmp                       ; key landed
+DW noAction, $00                            ; sprite 22
+DW noAction, $00                            ; sprite 23
+DW noAction, $00                            ; sprite 24
+DW collidePoints, pointsbmp                 ; points landed
+DW noAction, $00                            ; sprite 26
+DW noAction, $00                            ; sprite 27
+DW noAction, $00                            ; sprite 28
+DW collideDynamite, dynamitebmp             ; dynamite landed
+DW noAction, $00                            ; sprite 30
+DW noAction, $00                            ; sprite 31
+DW noAction, $00                            ; sprite 32
+DW CS1, toxicbmp                            ; toxic drop
 
 ;--------------------------------------------------------------------------
 ; A is passed with "balloon" sprite pattern to check against
@@ -50,9 +86,9 @@ chkSprite1
         LD C, (HL)
         INC HL
         LD B, (HL)
-        EX DE, HL
 
         ; swap DE and HL to do the jump to routine
+        EX DE, HL
         JP (HL)
 
 collideSkull
@@ -312,41 +348,4 @@ myhit
 manBitmap    DW 00                          ; location of our man bitmap
 spriteBitmap DW 00                          ; location of sprite bitmap being checked
 collisionInx DW $00
-
-collideAction
-DW noAction, $00                            ; sprite  0
-DW noAction, $00                            ; sprite  1
-DW noAction, $00                            ; sprite  2
-DW noAction, $00                            ; sprite  3
-DW collideSkull, skullbmp                   ; skull
-DW noAction, $00                            ; sprite  5
-DW noAction, $00                            ; sprite  6
-DW noAction, $00                            ; sprite  7
-DW collideBalloon, balloonbmp               ; balloon
-DW noAction, $00                            ; sprite  9
-DW noAction, $00                            ; sprite 10
-DW noAction, $00                            ; sprite 11
-DW noAction, $00                            ; sprite 12
-DW collideHeart, heartbmp                   ; heart landed
-DW noAction, $00                            ; sprite 14
-DW noAction, $00                            ; sprite 15
-DW noAction, $00                            ; sprite 16
-DW collideApple, applebmp                   ; apple landed
-DW noAction, $00                            ; sprite 18
-DW noAction, $00                            ; sprite 19
-DW noAction, $00                            ; sprite 20
-DW collideKey, keybmp                       ; key landed
-DW noAction, $00                            ; sprite 22
-DW noAction, $00                            ; sprite 23
-DW noAction, $00                            ; sprite 24
-DW collidePoints, pointsbmp                 ; points landed
-DW noAction, $00                            ; sprite 26
-DW noAction, $00                            ; sprite 27
-DW noAction, $00                            ; sprite 28
-DW collideDynamite, dynamitebmp             ; dynamite landed
-DW noAction, $00                            ; sprite 30
-DW noAction, $00                            ; sprite 31
-DW noAction, $00                            ; sprite 32
-DW CS1, toxicbmp                            ; toxic drop
-
 

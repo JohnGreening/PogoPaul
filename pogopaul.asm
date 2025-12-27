@@ -159,6 +159,7 @@ volume       DB %00001111                   ; volume
 length EQU $ - $6000
 SAVEBIN "pogopaul.bin", $6000, length
 
+; create .nex file. MAINPROG is entry point, $FF40 is stack pointer
 SAVENEX OPEN "pogopaul.nex", MAINPROG, $FF40
 ;SAVENEX CORE 2, 0, 0
 ;SAVENEX CFG 7, 0, 0, 0

@@ -86,12 +86,12 @@ random
         RET
 
 randomY
-        CALL random1
-        AND %00001111
-        LD HL, rndY
-        ADD HL, A
-        LD A, (HL)
-        RET
+        CALL random1                        ; get a random number 0-255
+        AND %00001111                       ; mask off so now its 0-15
+        LD HL, rndY                         ; point to rndY table
+        ADD HL, A                           ; add in rnd offset
+        LD A, (HL)                          ; pick up the value from the table
+        RET                                 ; return it
 randomX
         CALL random1
         AND %00001111
@@ -115,5 +115,6 @@ keySpace
 
 LFSRSeed DB $12, $34, $56, $78, $9a, $bc, $de, $f0
 rseed    DB 1
-rndY     DB 24,32,48,64,80,96,104,120,136,152,168,176,192,208,224,240
+;rndY     DB 24,32,48,64,80,96,104,120,136,152,168,176,192,208,224,240
+rndY     DB  24,32,48,64,80,96,104,120,136,152,168,80,64,48,32,24
 rndX     DW 0,16,40,64,80,104,128,144,168,192,208,232,256,272,296,320

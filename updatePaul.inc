@@ -44,11 +44,11 @@ keyUp
 showPaul0
         LD IX, manSprite                    ; point to Paul data
 ;        LD DE, spriteY
-        LD A, (riseCnt)                     ; determine vertical direction
-        DEC A
-        JP M, paulFalling
-        LD (riseCnt), A
-        JP Z, paulFalling                   ; branch if so
+        LD A, (riseCnt)                     ; determine vertical direction, >0 is rising
+        DEC A                               ; sub 1
+        JP M, paulFalling                   ; branch if minus, i.e. was already 0
+        LD (riseCnt), A                     ; otherwise store
+        JP Z, paulFalling                   ; branch if 0, falling now
 
 paulRising
         DEC (IX +sBalloon.lowY)             ; otherwise move Paul up
@@ -94,63 +94,83 @@ paulRight
         JR leftrightEnd
 
 leftrightEnd
-;        PUSH DE
         CALL paulTileCollision
-;        POP DE
 
-;        LD IY, tileMapData +837
-;        LD A, (hitind1)
-;        CALL DispA
-;        LD IY, tileMapData +877
-;        LD A, (hitind)
-;        CALL DispA
-;        LD IY, tileMapData +917
-;        LD A, (riseCnt)
-;        CALL DispA
-;        LD IY, tileMapData +957
-;        LD A, (IX +sBalloon.dirH)
-;        CALL DispA
-;        LD IY, tileMapData +997
-;        LD A, (hitLind)
-;        CALL DispA
-;        LD IY, tileMapData +1037
-;        LD A, (hitRind)
-;        CALL DispA
-;        LD A, (hitind1)
-;        AND A
-;        CALL NZ, showPaul1
-;        LD A, (hitind1)
-;        AND A
-;        CALL NZ, keySpace
+.diagnostics
+        jp .diagnosticsEnd
+        LD IY, tileMapData +837
+        LD A, (hitind1)
+        CALL DispA
+        LD IY, tileMapData +877
+        LD A, (hitind)
+        CALL DispA
+        LD IY, tileMapData +917
+        LD A, (riseCnt)
+        CALL DispA
+        LD IY, tileMapData +957
+        LD A, (IX +sBalloon.dirH)
+        CALL DispA
+        LD IY, tileMapData +997
+        LD A, (hitLind)
+        CALL DispA
+        LD IY, tileMapData +1037
+        LD A, (hitRind)
+        CALL DispA
+
+        LD A, (hitind1)                     
+        ld b, a                             ; store lowest pixel line with hit
+        ld a, (hitind)                     
+        ld c, a                             ; store highest pixel line with hit
 
 
+        ld a, b
+        cp 22
+        jp nc, .diagnosticsEnd              ; skip if hitind1 >= 22
+
+        cp c
+        jp z, .diagnosticsEnd               ; skip if hitind1 = hitind, e.g. 6/6 etc.
+
+.diagnostics1
+        ; show Paul in-situ (with collision) if hit
+        ld a, (hitind1)
+        AND A
+        CALL NZ, showPaul1
+
+        ; wait for space if hit
+        LD A, (hitind1)
+        AND A
+        CALL NZ, keySpace
+
+.diagnosticsEnd
         LD A, (hitind)
         AND A
         JP Z, paulFinish
 
 ; here xy coords have been updated and we have detected a collision
 ; has occured
-; hitind1 is the top pixel line with collision
-; hitind  is the lowest pixel line with collision
+; Paul is 32 pixels tall, 0 top - 31 bottom
+; the very top pixel lines are blank, his head starts at pixel line 6
+; hitind1 is the lowest pixel line with collision
+; hitind  is the highest pixel line with collision
 tileCollision
         LD A, (hitind1)                     ; get high point of hit
-        CP 31                               ; bottom of pogo stick?
-        JP Z, bounce                        ; this is a bounce
+        CP 22                               ; bottom of pogo stick?
+        JP nc, bounce                       ; if A >= 24, this is a bounce
 
-        CP 26                               ; near bottom of pogo stick
-        JR C, tileCollision1                ; branch if not
+;        CP 26                               ; near bottom of pogo stick
+;        JR C, tileCollision1                ; branch if not
                                             ; but check low point to ensure
 ;        LD A, (hitind)                     ; that it's still a bounce
 ;        CP 31
 ;        JR NZ tileCollision1               ; branch if its not
 
-        CALL reverseX1                      ; kinda bounce but reverse any
-        JP bounce                           ; left/right movement and bounce
+;        CALL reverseX1                      ; kinda bounce but reverse any
+;        JP bounce                           ; left/right movement and bounce
 
 tileCollision1
-        LD A, (riseCnt)
-        AND A
-        JR Z, hitFalling
+;        LD A, (riseCnt)
+;        AND A
+;        JR Z, hitFalling
         JR hitRising
 
 ; hit whilst rising
@@ -160,7 +180,7 @@ hitRising
 
         LD A, (hitind1)                     ; see highpoint of hit
         CP 8
-        JR NC, hitRising1                   ; dont decrease health if so
+        JR NC, hitRising1                   ; A >= 8, dont decrease health if so
 
         LD A, (healthDelay)                 ; get current health delay
         SUB 3                               ; decrease it
@@ -176,17 +196,36 @@ hitRising
 
 hitRising1
         CALL reverseX1                      ; reverse previous left/right
+
+        ld a, (riseCnt)
+        and a
+        jr z, .hr1
+        jr .hr2
+
+.hr1
+        dec (ix +sBalloon.lowY)
+        jr .hr3
+.hr2
         INC (IX +sBalloon.lowY)             ; move Paul down
+        jr .hr3
+
         ;LD A, (DE)
         ;INC A
         ;LD (DE), A
-
+.hr3
         XOR A                               ; Paul is now falling
         LD (riseCnt), A                     ; set it
 
-        LD A, (hitind1)                     ; don't pause l/r movement
-        CP 6                                ; if its just Paul's head
-        JP Z, paulFinish
+        LD A, (hitind)                      ;
+        ld b, a
+        ld a, (hitind1)
+        cp b
+        jp z, paulFinish
+       ; CP 6                                ; if its just Paul's head
+       ; JP Z, paulFinish
+       ; cp 7
+       ; jp z, paulFinish
+
 
         XOR A
         LD (spriteDirH), A
