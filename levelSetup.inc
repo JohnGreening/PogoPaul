@@ -371,12 +371,12 @@ showTitles
         CALL showKey
 
         LD IX, balloonTemp
-        LD (IX +sBalloon.index), 52
-        LD (IX +sBalloon.pattern), dynamite
-        LD (IX +sBalloon.lowX), 32
-        LD (IX +sBalloon.highX), 0
-        LD (IX +sBalloon.lowY), 224
-        CALL showSP1
+;        LD (IX +sBalloon.index), 52
+;        LD (IX +sBalloon.pattern), dynamite
+;        LD (IX +sBalloon.lowX), 32
+;        LD (IX +sBalloon.highX), 0
+;        LD (IX +sBalloon.lowY), 224
+;        CALL showSP1
         LD (IX +sBalloon.index), 53
         LD (IX +sBalloon.pattern), key
         LD (IX +sBalloon.lowX), 56

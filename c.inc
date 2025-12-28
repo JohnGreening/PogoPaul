@@ -1,3 +1,4 @@
+
 device ZXSPECTRUMNEXT
 
 ORG $6000
@@ -796,15 +797,11 @@ DB 029,006
 DB 000,034
 DB 029,016
 DB 000,013
-DB 029,018
-DB 000,002
-DB 029,001
+DB 029,021
 DB 000,002
 DB 029,005
 DB 000,011
-DB 029,019
-DB 000,002
-DB 029,001
+DB 029,022
 DB 000,002
 DB 029,006
 DB 000,009
@@ -938,16 +935,12 @@ DB 018,005
 DB 031,001
 DB 030,008
 DB 000,024
-DB 018,008
-DB 000,002
-DB 018,001
+DB 018,011
 DB 000,002
 DB 018,004
 DB 023,002
 DB 000,020
-DB 018,009
-DB 000,002
-DB 018,001
+DB 018,012
 DB 000,002
 DB 018,005
 DB 022,001
@@ -1078,18 +1071,14 @@ DB 000,024
 DB 029,015
 DB 001,001
 DB 000,023
-DB 029,009
-DB 000,002
-DB 029,001
+DB 029,012
 DB 000,002
 DB 029,002
 DB 007,001
 DB 005,001
 DB 003,001
 DB 000,020
-DB 029,010
-DB 000,002
-DB 029,001
+DB 029,013
 DB 000,002
 DB 029,004
 DB 001,001
@@ -1437,7 +1426,8 @@ tilemapPalette0Loop:
   DJNZ tilemapPalette0Loop
  
 ; Configure Sprite and Layers System
-  NEXTREG $15, %00000011
+; NEXTREG $15, %00000011
+  NEXTREG $15, %00010111
 ; bit 7 1=enable lo-res 
 ; bit 6 1=flip sprite rendering priority
 ; bit 5 1=change clipping over border mode
@@ -1482,6 +1472,9 @@ spritePatternLoop:
 
 ; set index of transparent colour in the Sprite palette
  NEXTREG $4b, 0
+
+; set global transparency fallback
+ NEXTREG $14, 0
 
 ; load the colours into the palette memory
 ; here we are using 9 bit colours, so use $44 to do the load
