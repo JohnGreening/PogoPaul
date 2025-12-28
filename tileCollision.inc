@@ -32,7 +32,7 @@ paulTileCollision
 testPaulHit
         ; "logically" move Sprite down over the map
         ; depending on Y pixel co-ord, i.e. how far down into the next char
-        LD A, (IX +sBalloon.lowY)           ; get the Y pixel coord
+        LD A, (IX +strucBalloon.lowY)           ; get the Y pixel coord
         AND %00000111                       ; mask to get portion into next char
         LD D, A                             ; we then multiply by 3 because
         LD E, 3                             ; of starting at the RHS of the
@@ -41,11 +41,11 @@ testPaulHit
         LD HL, tileBmpMap +2                ; point to RHS of the map
         ADD HL, DE                          ; move down DE pixels
 
-        LD A, (IX +sBalloon.lowX)           ; now get the X pixel coord
+        LD A, (IX +strucBalloon.lowX)           ; now get the X pixel coord
         AND %00000111                       ; similarly mask of 0-7
         LD B, A                             ; how many pixels into next char across
 
-        LD A, (IX +sBalloon.pattern)        ; get Sprite patten
+        LD A, (IX +strucBalloon.pattern)        ; get Sprite patten
         CP 0                                ; is it Paul facing right?
         JR Z, testHita                      ; jump if so to facing right routine
         JR   testHitb                       ; jump to facing left routine
@@ -118,7 +118,7 @@ itemTileCollision
 
         ; "logically" move Sprite down over the map
         ; depending on Y pixel co-ord, i.e. how far down into the next char
-        LD A, (IX +sBalloon.lowY)           ; get the Y pixel coord
+        LD A, (IX +strucBalloon.lowY)           ; get the Y pixel coord
         AND %00000111                       ; mask to get portion into next char
         LD D, A                             ; we then multiply by 3 because
         LD E, 3                             ; of starting at the RHS of the
@@ -127,11 +127,11 @@ itemTileCollision
         LD HL, tileBmpMap +47               ; point to RHS of the map
         ADD HL, DE                          ; move down DE pixels
 
-        LD A, (IX +sBalloon.lowX)           ; now get the X pixel coord
+        LD A, (IX +strucBalloon.lowX)           ; now get the X pixel coord
         AND %00000111                       ; similarly mask of 0-7
         LD B, A                             ; how many pixels into next char across
 
-        LD A, (IX +sBalloon.pattern)
+        LD A, (IX +strucBalloon.pattern)
         CP Sheart
         JR Z, heartCollision
         CP Sapple
@@ -182,18 +182,18 @@ ITCEnd
 
 hitR
 ; hit here will always be RHS since this is the buffer char
-        LD A, (hitind1)
-        AND A
-        JR NZ, hitR1
-        LD A, C
-        LD (hitind1), A
+        LD A, (hitind1)                     ; get current lowest pixel line where collision found
+        AND A                               ; see if it's zero
+        JR NZ, hitR1                        ; branch if not (we've already set lowest pixel line)
+        LD A, C                             ; otherwise get the current pixel line
+        LD (hitind1), A                     ; and set this to be the lowest
 hitR1
 
-        LD A, C
-        LD (hitind), A
-        LD A, 1
-        LD (hitRind), A
-        RET
+        LD A, C                             ; get current pixel line
+        LD (hitind), A                      ; set highest pixel line with collision
+        LD A, 1                             ; prepare to set hit on RHS ind
+        LD (hitRind), A                     ; do it
+        RET                                 ; and return
 
 hitM
 ; hit here could be LHS or RHS or BOTH ! depending on shift B
@@ -222,13 +222,13 @@ build3x5
 ; build a 3x5 bitmap of tilemap data where sprite currently is
 ; IX = sprite in question
 
-        LD E, (IX +sBalloon.lowX)           ; get X char coord
-        LD D, (IX +sBalloon.highX)          ; i.e. X pixel / 8
+        LD E, (IX +strucBalloon.lowX)           ; get X char coord
+        LD D, (IX +strucBalloon.highX)          ; i.e. X pixel / 8
         LD B, 3
         BSRA DE,B
         LD B, E                             ; B = X pixel / 8
 
-        LD A, (IX +sBalloon.lowY)           ; get Y char coord
+        LD A, (IX +strucBalloon.lowY)           ; get Y char coord
         SRL A                               ; i.e. Y pixel / 8
         SRL A
         SRL A                               ; A = Y pixel / 8

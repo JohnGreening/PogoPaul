@@ -30,7 +30,7 @@ MAINPROG
         LD A, (HL)
         LD (LFSRSeed+1), A
 
-        CALL copyLevelData
+        CALL copystrucLevelData
         CALL buildbmp                       ; build 1bit bitmaps for collision
         CALL convertChars                   ; generate char tiles (86-127)
         CALL setupIM2

@@ -226,9 +226,9 @@ nib21
         SET 0, E
         JR nib2Done
 
-copyLevelData
+copystrucLevelData
         LD HL, level0
         LD DE, roomData
-        LD BC, levelData * (splashLevel +1)
+        LD BC, strucLevelData * (splashLevel +1)
         LDIR
         RET

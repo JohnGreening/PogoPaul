@@ -1,4 +1,4 @@
-        struct levelData
+        struct strucLevelData
 dataAddrL       byte
 dataAddrH       byte
 balloonCount    byte
@@ -10,7 +10,7 @@ paulYL          byte
 paulYH          byte
         ENDS
         
-    struct sBalloon
+    struct strucBalloon
 index       byte                            ; index for sprite system 0-99
 lowX        byte                            ; x coord lsb
 highX       byte                            ; x coord msb
@@ -27,8 +27,8 @@ pattern     byte                            ; sprite pattern
     ENDS
 
 balloonMaxCount equ 21
-balloonSpr defs sBalloon * balloonMaxCount
-balloonTemp defs sBalloon
+balloonSpr defs strucBalloon * balloonMaxCount
+balloonTemp defs strucBalloon
 
 balloonSprCnt  DB 0                         ; balloon count set for level
 maxOnScreen    DB 0                         ; max balloons allowed on screen at a time, set for level
@@ -58,7 +58,7 @@ manPat         DB 0
 
 manSpriteLen equ $ - manSprite
 
-    assert manSpriteLen = sBalloon, manSprite and sBalloon lengths differ in globals.inc
+    assert manSpriteLen = strucBalloon, manSprite and strucBalloon lengths differ in globals.inc
 
 bounceTable
         DB 16, 24, 32, 36, 40, 44, 48, 52, 56, 60, 64 , 68, 72, 76, 80, 84
@@ -69,10 +69,10 @@ skullDelay equ 2
 ;-------------------------------------------------------
 ; pattern nymbers for the sprites
 ;-------------------------------------------------------
-toxic          EQU 33
+Stoxic          EQU 33
 Sskull          EQU 4
 Sballoon        EQU 8
-blank          EQU 32
+Sblank          EQU 32
 Sheart          EQU 12
 Sapple          EQU 16
 Skey            EQU 20
@@ -82,9 +82,9 @@ dynamite       EQU 28
 ;-------------------------------------------------------
 ; tilr nymbers for the tiles
 ;-------------------------------------------------------
-tileCross    EQU 13
-tileTick     EQU 14
-
+TtileCross    EQU 13
+TtileTick     EQU 14
+Tkey          EQU 48
 
 
 maxLevel EQU 8
@@ -165,8 +165,6 @@ iyScore      EQU tileMapData + 7
 iyHiScore    EQU tileMapData +23
 iyLives      EQU tileMapData + 36
 iyLevel      EQU tileMapData +662
-;iyDynamite   EQU tileMapData +1205
-iyKey        EQU tileMapData +1208
 
 
 score        DW 0

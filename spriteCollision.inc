@@ -18,15 +18,15 @@ chkSprite
 ; - call collision check routine
 ; - check if collision (carry set) and loop if not, otherwise return IX = balloon hit
 
-        LD A, (IX +sBalloon.pattern)
+        LD A, (IX +strucBalloon.pattern)
         CP 255
         RET Z
 
-        CP blank
+        CP Sblank
         CALL NZ, chkSprite1
         RET C                               ; exit if carry, i.e. hit detected
         
-        LD DE, sBalloon
+        LD DE, strucBalloon
         ADD IX, DE
         JR chkSprite
 
@@ -175,14 +175,14 @@ itemCollideCommon
         LD A, soundCollect
         CALL playsound
         LD IY, (collisionInx)
-        LD A, blank
-        LD (IY +sBalloon.newSprite), A
+        LD A, Sblank
+        LD (IY +strucBalloon.newSprite), A
 itemHitCommon
-        LD (IY +sBalloon.pattern), A
+        LD (IY +strucBalloon.pattern), A
         XOR A
-        LD (IY +sBalloon.popDelayH), A
+        LD (IY +strucBalloon.popDelayH), A
         LD A, 15
-        LD (IY +sBalloon.popDelayL), A
+        LD (IY +strucBalloon.popDelayL), A
         AND A
         RET
 
@@ -199,7 +199,7 @@ CS1
         LD (collisionInx), IX               ; and the balloon in question
 doYDiff
         LD A, (spriteY)                     ; get Paul's Y coord
-        LD B, (IX +sBalloon.lowY)           ; get Balloon Y coord
+        LD B, (IX +strucBalloon.lowY)           ; get Balloon Y coord
         SUB B                               ; A= Paul Y - Balloon Y
         JR C, spriteBelowPaul               ; if carry BalloonY > Paul Y
 
@@ -251,8 +251,8 @@ spriteBelowPaul
 
 doXDiff
         LD HL, (spriteX)
-        LD E, (IX +sBalloon.lowX)
-        LD D, (IX +sBalloon.highX)
+        LD E, (IX +strucBalloon.lowX)
+        LD D, (IX +strucBalloon.highX)
 
         OR A
         SBC HL, DE

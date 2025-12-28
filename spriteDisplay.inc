@@ -1,14 +1,14 @@
 showSP
-        LD A, (IX +sBalloon.index)      ; get the sprite index
+        LD A, (IX +strucBalloon.index)      ; get the sprite index
         NEXTREG $34, A                  ; set sprite to activate
 
-        LD A, (IX +sBalloon.lowX)       ; get sprite X lsb
+        LD A, (IX +strucBalloon.lowX)       ; get sprite X lsb
         NEXTREG $35, A                  ; set attr byte 0 of port $0057
 
-        LD A, (IX +sBalloon.lowY)       ; get sprite Y lsb
+        LD A, (IX +strucBalloon.lowY)       ; get sprite Y lsb
         NEXTREG $36, A                  ; set attr byte 1 of port $0057
 
-        LD A, (IX +sBalloon.highX)      ; get sprite X msb
+        LD A, (IX +strucBalloon.highX)      ; get sprite X msb
         AND 1                           ; only need bit 0 of X msb
         NEXTREG $37, A                  ; bits 7-4 palette offset
                                         ;        3 1=enable X mirroring
@@ -16,7 +16,7 @@ showSP
                                         ;        1 1=rotate 90 clockwise
                                         ;        0 msb of X
                                         ; this is attr byte 2 of port $0057
-        LD A, (IX +sBalloon.pattern)    ; get pattern index to use
+        LD A, (IX +strucBalloon.pattern)    ; get pattern index to use
         OR %11000000                    ;
 ;        OR %10000000                   ;
 
@@ -33,24 +33,24 @@ showSP
         RET
 
 showSP1
-        LD A, (IX +sBalloon.index)      ; get the sprite index
+        LD A, (IX +strucBalloon.index)      ; get the sprite index
         NEXTREG $34, A                  ; set sprite to activate
-        LD A, (IX +sBalloon.lowX)       ; get sprite X lsb
+        LD A, (IX +strucBalloon.lowX)       ; get sprite X lsb
         NEXTREG $35, A                  ; set attr byte 0 of port $0057
-        LD A, (IX +sBalloon.lowY)       ; get sprite Y lsb
+        LD A, (IX +strucBalloon.lowY)       ; get sprite Y lsb
         NEXTREG $36, A                  ; set attr byte 1 of port $0057
-        LD A, (IX +sBalloon.highX)      ; get sprite X msb
+        LD A, (IX +strucBalloon.highX)      ; get sprite X msb
         AND 1                           ; only need bit 0 of X msb
         NEXTREG $37, A                  ; bits 7-4 palette offset
 
-        LD A, (IX +sBalloon.pattern)    ; get pattern index to use
+        LD A, (IX +strucBalloon.pattern)    ; get pattern index to use
 
         OR %10000000                    ;
         NEXTREG $38, A                  ; bits 7 1=make sprite visible
         RET
 
 showManRels
-        LD A, (IX +sBalloon.index)      ; set first RELATIVE sprite
+        LD A, (IX +strucBalloon.index)      ; set first RELATIVE sprite
         INC A
         NEXTREG $34, A                  ; set sprite to activate
 

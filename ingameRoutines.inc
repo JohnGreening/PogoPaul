@@ -105,19 +105,23 @@ showLives
         POP IY
         RET
 
-;showDynamite
-;        LD A, (dynamiteCnt)                 ; get dynamite count
-;        LD B, tileCross                     ; set tile number to be the cross, not tick
-;        AND A                               ; test dynamite count
-;        JR Z, showDynamite1                 ; branch if none held
-;        INC B                               ; set tile number to be the tick
-;showDynamite1
-;        LD HL, iyDynamite                   ; position for the tick or cross
-;        LD (HL), B                          ; set the tile as appropriate
-;        RET
 showKey
+        ld A, Tkey                          ; tile start for key 1/4                           
+        LD HL, tileMapData +1121            ; tilemap position
+        ld (hl), a                          ; place tile 1/4
+        inc a
+        inc hl
+        ld (hl), a                          ; place tile 2/4
+        inc a
+        ld hl, tileMapData +1161
+        ld (hl), a                          ; place tile 3/4
+        inc a
+        inc hl
+        ld (hl), a                          ; place tile 4/4
+        
+
         LD A, (keyCnt)                      ; get current key count                          
-        LD B, tileCross                     ; set tile number to be the cross, not tick
+        LD B, TtileCross                    ; set tile number to be the cross, not tick
         AND A                               ; test key count
         JR Z, showKey1                      ; branch if key not caught yet
         INC B                               ; set tile number to be the tick
@@ -147,7 +151,7 @@ showKey
         INC HL
         LD (HL), A
 showKey1
-        LD HL, iyKey                        ; position for the tick or cross
+        LD HL, tileMapData +1202            ; position for the tick or cross
         LD (HL), B                          ; set the tile as appropriate
         RET
 

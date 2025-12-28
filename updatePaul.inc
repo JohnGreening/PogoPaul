@@ -50,11 +50,11 @@ showPaul0
         JP Z, paulFalling                   ; branch if 0, falling now
 
 paulRising
-        DEC (IX +sBalloon.lowY)             ; otherwise move Paul up
+        DEC (IX +strucBalloon.lowY)             ; otherwise move Paul up
         JR doLeftRight                      ; end of rise processing
 
 paulFalling
-        INC (IX +sBalloon.lowY)             ; move Paul down
+        INC (IX +strucBalloon.lowY)             ; move Paul down
 
 doLeftRight
 ; so here we decide if Paul is allowed to move left/right
@@ -101,7 +101,7 @@ leftrightEnd
         LD A, (riseCnt)
         CALL DispA
         LD IY, tileMapData +957
-        LD A, (IX +sBalloon.dirH)
+        LD A, (IX +strucBalloon.dirH)
         CALL DispA
         LD IY, tileMapData +997
         LD A, (hitLind)
@@ -178,10 +178,10 @@ tileCollision1
         jr .hr2                             ; otherwise do the jumping branch
 
 .hr1
-        dec (ix +sBalloon.lowY)             ; reverse falling, move Paul up
+        dec (ix +strucBalloon.lowY)             ; reverse falling, move Paul up
         jr .hr3                             ; done
 .hr2
-        INC (IX +sBalloon.lowY)             ; reverse jumping, move Paul down
+        INC (IX +strucBalloon.lowY)             ; reverse jumping, move Paul down
         jr .hr3                             ; done
 
 .hr3
@@ -212,7 +212,7 @@ bounce
         LD A, soundBounce
         CALL playsound
 
-        DEC (IX +sBalloon.lowY)             ; move Paul up
+        DEC (IX +strucBalloon.lowY)             ; move Paul up
 
         LD A, (strengthInd)                 ; get index into bounce table
         LD HL, bounceTable                  ; point to bounce table

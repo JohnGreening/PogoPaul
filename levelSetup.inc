@@ -6,18 +6,47 @@ newGame
 
         LD HL, 0
         LD (score), HL
+
         XOR A
-;        LD (dynamiteCnt), A
         LD (keyCnt), A
+
         LD A, 3
         LD (lives), A
 
         LD A, 15
         LD (volume), A
+
         LD A, splashLevel
         CALL createLevel
         CALL setupBalloon
-        CALL instructions
+
+        displayText tInst1
+        displayText tInst2
+        displayText tInst3
+
+        LD IX, balloonTemp
+        LD (IX +strucBalloon.index), 52
+        LD (IX +strucBalloon.pattern), 8
+        LD (IX +strucBalloon.lowX), 208
+        LD (IX +strucBalloon.highX), 0
+        LD (IX +strucBalloon.lowY), 8
+        CALL showSP1
+        LD (IX +strucBalloon.index), 53
+        LD (IX +strucBalloon.pattern), 8
+        LD (IX +strucBalloon.lowX), 232
+        LD (IX +strucBalloon.highX), 0
+        LD (IX +strucBalloon.lowY), 24
+        CALL showSP1
+
+        LD IX, manSprite
+        LD A, 1
+        LD (strengthInd), A
+        LD A, 18
+        LD (riseCnt), A
+        LD A, nothing
+        LD (IX +strucBalloon.dirH), A
+        CALL showPaul1
+
         LD IY, tScroll                      ; point to scrolling instructions
         LD H, 1                             ; first scroll delay
         LD L, textLines                     ; count of text lines
@@ -34,41 +63,12 @@ waitSpace1
         IN A, (C)                           ; read port
         BIT 0, A                            ; is space pressed
         JR NZ, waitSpace                    ; branch if not pressed
+
         LD A, 12
         LD (volume), A
         LD A, 0                             ; starting level
         LD (LEVEL), A
         JP commonInit
-
-instructions
-        displayText tInst1
-        displayText tInst2
-        displayText tInst3
-
-        LD IX, balloonTemp
-        LD (IX +sBalloon.index), 52
-        LD (IX +sBalloon.pattern), 8
-        LD (IX +sBalloon.lowX), 208
-        LD (IX +sBalloon.highX), 0
-        LD (IX +sBalloon.lowY), 8
-        CALL showSP1
-        LD (IX +sBalloon.index), 53
-        LD (IX +sBalloon.pattern), 8
-        LD (IX +sBalloon.lowX), 232
-        LD (IX +sBalloon.highX), 0
-        LD (IX +sBalloon.lowY), 24
-        CALL showSP1
-
-        LD IX, manSprite
-        LD A, 1
-        LD (strengthInd), A
-        LD A, 18
-        LD (riseCnt), A
-        LD A, nothing
-        LD (IX +sBalloon.dirH), A
-        CALL showPaul1
-
-        RET
 
 doScroll
         DEC H                               ; -1 for scroll delay
@@ -84,7 +84,7 @@ scroll
         PUSH DE
         PUSH BC
         LD BC, 40                           ; each line is 40 chars
-        LDIR                                 ; do the scroll
+        LDIR                                ; do the scroll
         POP BC
         POP DE
         POP HL
@@ -113,39 +113,41 @@ restartGame
 
 ; here we turn all skulls back into balloons
 restartGame1
-        LD A, (IX +sBalloon.pattern)        ; get balloon pattern
+        LD A, (IX +strucBalloon.pattern)    ; get balloon pattern
         CP 255                              ; are we at the end
         JR Z, commonInit                    ; branch if so
         CP Sskull                           ; is pattern a skull
         JR NZ, restartGame2                 ; branch over if not
         LD A, Sballoon                      ; change skull back to balloon
-        LD (IX +sBalloon.pattern), A        ; - set pattern
+        LD (IX +strucBalloon.pattern), A    ; - set pattern
         LD HL, 0                            ;
-        LD (IX +sBalloon.lowX), L           ; - set X coord as lhs
-        LD (IX +sBalloon.highX), H          ;
+        LD (IX +strucBalloon.lowX), L       ; - set X coord as lhs
+        LD (IX +strucBalloon.highX), H      ;
 restartGame2
-        LD A, (IX +sBalloon.index)          ; - set pop delay
+        LD A, (IX +strucBalloon.index)      ; - set pop delay
         LD C, A
         LD A, 255
-        LD (IX +sBalloon.popDelayL), A
+        LD (IX +strucBalloon.popDelayL), A
         LD A, C
         ADD 2
         SLA A
-        LD (IX +sBalloon.popDelayH), A
+        LD (IX +strucBalloon.popDelayH), A
 
-        LD DE, sBalloon
+        LD DE, strucBalloon
         ADD IX, DE
         JR restartGame1
 
 levelUp
         CALL killSprites
         LD A, 0
- ;       LD (dynamiteCnt), A
         LD (keyCnt), A
+
         CALL paulInit
+
         LD A, (LEVEL)
         INC A
         LD (LEVEL), A
+
         CALL createLevel
         CALL setupBalloon
         CALL showTitles
@@ -166,9 +168,9 @@ paulInit
         ; initialise Paul with starting data
         LD IX, manSprite
         LD A, facingRight
-        LD (IX +sBalloon.pattern), A
+        LD (IX +strucBalloon.pattern), A
         LD A, nothing
-        LD (IX +sBalloon.dirH), A
+        LD (IX +strucBalloon.dirH), A
         LD A, 1
         LD (strengthInd), A
         LD A,18
@@ -216,35 +218,35 @@ createLevel
 ; A passed with room number 0-9 to create
         LD IY, roomData                     ; point to base room/level data
         LD E, A                             ; get the room number into E
-        LD D, levelData                     ; get the room data length
+        LD D, strucLevelData                     ; get the room data length
         MUL D, E                            ; multiply
         ADD IY, DE                          ; hence room data for A
-        LD E, (IY +levelData.dataAddrL)     ; get layout low address in E
-        LD D, (IY +levelData.dataAddrH)     ; get layout high address in D
+        LD E, (IY +strucLevelData.dataAddrL)     ; get layout low address in E
+        LD D, (IY +strucLevelData.dataAddrH)     ; get layout high address in D
 
-        LD A, (IY +levelData.balloonCount)  ; get balloon count for level
+        LD A, (IY +strucLevelData.balloonCount)  ; get balloon count for level
         LD (balloonSprCnt), A               ; save it
 
-        LD A, (IY +levelData.maxOnScreen)   ; get max on screen for level
+        LD A, (IY +strucLevelData.maxOnScreen)   ; get max on screen for level
         LD (maxOnScreen), A                 ; save it
 
-        LD A, (IY +levelData.featureByte)   ; get special features
+        LD A, (IY +strucLevelData.featureByte)   ; get special features
         LD (features), A                    ; sav it
 
         LD IX, manSprite                    ; ready to set initial Paul data
-        LD L, (IY +levelData.paulXL)        ; X coord
-        LD H, (IY +levelData.paulXH)
-        LD (IX +sBalloon.lowX), L
-        LD (IX +sBalloon.highX), H
-        LD L, (IY +levelData.paulYL)        ; Y coord
-        LD H, (IY +levelData.paulYH)
-        LD (IX +sBalloon.lowY), L
-        LD (IX +sBalloon.highY), H
+        LD L, (IY +strucLevelData.paulXL)        ; X coord
+        LD H, (IY +strucLevelData.paulXH)
+        LD (IX +strucBalloon.lowX), L
+        LD (IX +strucBalloon.highX), H
+        LD L, (IY +strucLevelData.paulYL)        ; Y coord
+        LD H, (IY +strucLevelData.paulYH)
+        LD (IX +strucBalloon.lowY), L
+        LD (IX +strucBalloon.highY), H
 
         CALL createTileMap
         RET
 
-roomData defs levelData * (splashLevel +1)
+roomData defs strucLevelData * (splashLevel +1)
 ; feature byte
 ;   bit 7
 ;   bit 6
@@ -367,22 +369,7 @@ showTitles
         CALL showScore
         CALL showHiScore
         CALL showLives
-        ;CALL showDynamite
         CALL showKey
-
-;        LD IX, balloonTemp
-;        LD (IX +sBalloon.index), 52
-;        LD (IX +sBalloon.pattern), dynamite
-;        LD (IX +sBalloon.lowX), 32
-;        LD (IX +sBalloon.highX), 0
-;        LD (IX +sBalloon.lowY), 224
-;        CALL showSP1
-;        LD (IX +sBalloon.index), 53
-;        LD (IX +sBalloon.pattern), key
-;        LD (IX +sBalloon.lowX), 56
-;        LD (IX +sBalloon.highX), 0
-;        LD (IX +sBalloon.lowY), 224
-;        CALL showSP1
 
         RET
 
@@ -455,13 +442,13 @@ setupBalloon
              LD C, 0
 setupBalloon1
              CALL createBalloon
-             LD DE, sBalloon
+             LD DE, strucBalloon
              ADD IX, DE
              INC C
              DJNZ setupBalloon1
 
              LD A, 255
-             LD (IX +sBalloon.pattern), A
+             LD (IX +strucBalloon.pattern), A
              LD A, (maxOnScreen)
              INC A
              LD (balloonNext), A
@@ -469,29 +456,29 @@ setupBalloon1
 
 createBalloon
              LD A, C                        ; get sprite index
-             LD (IX +sBalloon.index), A     ; set in balloon data
+             LD (IX +strucBalloon.index), A     ; set in balloon data
 
              CALL randomY                   ; get a random Y coord in A
-             LD (IX +sBalloon.lowY), A      ; set in balloon data
+             LD (IX +strucBalloon.lowY), A      ; set in balloon data
              LD A, 0                        ; set the high Y coord byte to 0
-             LD (IX +sBalloon.highY), A     ; set in balloon data
+             LD (IX +strucBalloon.highY), A     ; set in balloon data
 
              CALL random                    ; get a random number in A
              AND %00011111                  ; limit to 0-31
-             LD (IX +sBalloon.swoop), A     ; set in balloon data
+             LD (IX +strucBalloon.swoop), A     ; set in balloon data
 
              ; this determines how long it will take
              ; before the balloon auto pops
              ; and turns into a skull
              LD A, 255                      ; initialise low byte pop delay
-             LD (IX +sBalloon.popDelayL), A ; set it
+             LD (IX +strucBalloon.popDelayL), A ; set it
              LD A, C                        ; initialise high byte pop delay
              ADD 2                          ; use balloon index + 1
              SLA A
-             LD (IX +sBalloon.popDelayH), A ; set it
+             LD (IX +strucBalloon.popDelayH), A ; set it
 
              LD A, 0
-             LD (IX +sBalloon.landValue), A
+             LD (IX +strucBalloon.landValue), A
 
              LD A, (maxOnScreen)
              CP B
@@ -499,19 +486,19 @@ createBalloon
 
 onScreen
              LD A, Sballoon                 ; on screen, so pattern is balloon
-             LD (IX +sBalloon.pattern), A
+             LD (IX +strucBalloon.pattern), A
 
              CALL randomX                   ; get a random X coord in HL
-             LD (IX +sBalloon.lowX), L      ; set in balloon data
-             LD (IX +sBalloon.highX), H     ; set in balloon data
+             LD (IX +strucBalloon.lowX), L      ; set in balloon data
+             LD (IX +strucBalloon.highX), H     ; set in balloon data
              JR setupEnd
 
 offScreen
-             LD A, blank                    ; off screen, so pattern is blank
-             LD (IX +sBalloon.pattern), A
+             LD A, Sblank                    ; off screen, so pattern is blank
+             LD (IX +strucBalloon.pattern), A
              LD HL, 0                       ; set X as 0
-             LD (IX +sBalloon.lowX), L      ; set in balloon data
-             LD (IX +sBalloon.highX), H     ; set in balloon data
+             LD (IX +strucBalloon.lowX), L      ; set in balloon data
+             LD (IX +strucBalloon.highX), H     ; set in balloon data
              JR setupEnd
 
 setupEnd
@@ -525,38 +512,38 @@ setupEnd
         DEC A                               ; are we on the last one
         JR Z, assignKey                     ; branch if so
 assignItem1
-        CALL random1
-        AND %00001111
-        LD HL, items
-        ADD HL, A
-        LD A, (HL)
-        LD (IX +sBalloon.newSprite), A       ; may spawn into
+        CALL random1                        ; get a random number
+        AND %00001111                       ; mask off so its 0-15
+        LD HL, items                        ; point to items list
+        ADD HL, A                           ; index with random number
+        LD A, (HL)                          ; get item
+        LD (IX +strucBalloon.newSprite), A  ; set what this balloon may spawn into
 
         RET
 assignKey
-        LD A, (keyCnt)
-        AND A
-        JR NZ, assignItem1
-        LD A, Skey
-        LD (IX +sBalloon.newSprite), A       ; may spawn into
+        LD A, (keyCnt)                      ; get the count of "held" keys
+        AND A                               ; test for 0, not held
+        JR NZ, assignItem1                  ; if we are already holding the key, select another item
+        LD A, Skey                          ; set item to be the key
+        LD (IX +strucBalloon.newSprite), A  ; set what this balloon may spawn into
 
         RET
 
 items
-        DB blank
-        DB blank
-        DB blank
-        DB blank
-        DB blank
-        DB blank
-        DB Spoints
-        DB Spoints
-        DB Spoints
-        DB Spoints
-        DB Sapple
-        DB Sapple
-        DB Sapple
-        DB Sapple
-        DB Sheart
-        DB blank
+        DB Sblank                           ;  0
+        DB Sblank                           ;  1
+        DB Sblank                           ;  2
+        DB Sblank                           ;  3
+        DB Sblank                           ;  4
+        DB Sblank                           ;  5
+        DB Spoints                          ;  6
+        DB Spoints                          ;  7
+        DB Spoints                          ;  8
+        DB Spoints                          ;  9
+        DB Sapple                           ; 10
+        DB Sapple                           ; 11
+        DB Sapple                           ; 12
+        DB Sapple                           ; 13
+        DB Sheart                           ; 14
+        DB Sblank                           ; 15
 
