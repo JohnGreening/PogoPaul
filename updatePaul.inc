@@ -171,7 +171,7 @@ tileCollision1
 ;        LD A, (riseCnt)
 ;        AND A
 ;        JR Z, hitFalling
-        JR hitRising
+;        JR hitRising
 
 ; hit whilst rising
 hitRising
@@ -197,17 +197,17 @@ hitRising
 hitRising1
         CALL reverseX1                      ; reverse previous left/right
 
-        ld a, (riseCnt)
-        and a
-        jr z, .hr1
-        jr .hr2
+        ld a, (riseCnt)                     ; obtain riseCnt, i.e. were we jumping or falling
+        and a                               ; test for 0 (falling)
+        jr z, .hr1                          ; branch if falling
+        jr .hr2                             ; otherwise do the jumping branch
 
 .hr1
-        dec (ix +sBalloon.lowY)
-        jr .hr3
+        dec (ix +sBalloon.lowY)             ; reverse falling, move Paul up
+        jr .hr3                             ; done
 .hr2
-        INC (IX +sBalloon.lowY)             ; move Paul down
-        jr .hr3
+        INC (IX +sBalloon.lowY)             ; reverse jumping, move Paul down
+        jr .hr3                             ; done
 
         ;LD A, (DE)
         ;INC A
@@ -216,77 +216,77 @@ hitRising1
         XOR A                               ; Paul is now falling
         LD (riseCnt), A                     ; set it
 
-        LD A, (hitind)                      ;
-        ld b, a
-        ld a, (hitind1)
-        cp b
-        jp z, paulFinish
+        LD A, (hitind)                      ; get highest pixel line of collision
+        ld b, a                             ; save it
+        ld a, (hitind1)                     ; get lowest pixel line of collision
+        cp b                                ; same as highest?
+        jp z, paulFinish                    ; jump if so, e.g. 6/6, 7/7 etc
        ; CP 6                                ; if its just Paul's head
        ; JP Z, paulFinish
        ; cp 7
        ; jp z, paulFinish
 
 
-        XOR A
-        LD (spriteDirH), A
-        JP paulFinish
+        XOR A                               ; A=0
+        LD (spriteDirH), A                  ; sdet direction to 0 (none)
+        JP paulFinish                       ; done
 
 
-hitFalling
+;hitFalling
         ; hit whilst falling, but it is not a bounce?!
-        LD A, (hitLind)
-        LD B, A
-        LD A, (hitRind)
-        LD C, A
-        LD A, (manPat)
-        CP facingLeft
-        JR Z, fallingLeft
-        JR fallingRight
+;        LD A, (hitLind)
+;        LD B, A
+;        LD A, (hitRind)
+;        LD C, A
+;        LD A, (manPat)
+;        CP facingLeft
+;        JR Z, fallingLeft
+;        JR fallingRight
 
-fallingLeft
-        LD A, B
-        AND C
-        CP 1
-        JR Z, FLEnd
-        LD A, B
-        CP 1
-        JR Z, FLhitL
-        JR FLhitR
+;fallingLeft
+;        LD A, B
+;        AND C
+;        CP 1
+;        JR Z, FLEnd
+;        LD A, B
+;        CP 1
+;        JR Z, FLhitL
+;        JR FLhitR
 
-FLhitL
-        CALL reverseX1
-        JR FLEnd
-FLhitR
-        CALL movePaulLeft
-        JR FLEnd
+;FLhitL
+;        CALL reverseX1
+;        JR FLEnd
+;FLhitR
+ ;       CALL movePaulLeft
+ ;       JR FLEnd
 
-fallingRight
-        LD A, B
-        AND C
-        CP 1
-        JR Z, FLEnd
-        LD A, C
-        CP 1
-        JR Z, FRhitR
-        JR FRhitL
-FRhitR
-        CALL reverseX1
-        JR FLEnd
-FRhitL
-        CALL movePaulRight
-        JR FLEnd
+;fallingRight
+;        LD A, B
+;        AND C
+;        CP 1
+;        JR Z, FLEnd
+;        LD A, C
+;        CP 1
+;        JR Z, FRhitR
+;        JR FRhitL
+;FRhitR
+;        CALL reverseX1
+;        JR FLEnd
+;FRhitL
+;        CALL movePaulRight
+;        JR FLEnd
 
-FLEnd
+;FLEnd
      ;   LD A, (DE)
      ;   DEC A
      ;   LD (DE), A
-        DEC (IX +sBalloon.lowY)
-        LD A, nothing
-        LD (spriteDirH), A
-        LD A, (hitind)
-        CP 31
-        JR Z, bounce
-        JP paulFinish
+ ;       DEC (IX +sBalloon.lowY)
+ ;       LD A, nothing
+ ;       LD (spriteDirH), A
+ ;       LD A, (hitind)
+ ;       CP 31
+ ;       JR Z, bounce
+ ;       JP paulFinish
 
 bounce
 ; here we were either falling and glanced or fully hit the ground
@@ -325,14 +325,14 @@ bounce
 paulFinish
         CALL showPaul1                      ; show man sprite
 
-        LD BC, $7ffe                        ; ready keypoard port
-        IN A, (C)                           ; read it
-        AND %00000001                       ; mask except spacebar
-        XOR %00000001                       ; reverse so press = 1
-        LD B, A                             ; save in B
-        LD A, (dynamiteCnt)                 ; see if we have any dynamite
-        AND B                               ; if press and dynamite
-        CALL NZ, killSkulls                 ; kill the skulls
+;        LD BC, $7ffe                        ; ready keypoard port
+;        IN A, (C)                           ; read it
+;        AND %00000001                       ; mask except spacebar
+;        XOR %00000001                       ; reverse so press = 1
+;        LD B, A                             ; save in B
+;        LD A, (dynamiteCnt)                 ; see if we have any dynamite
+;        AND B                               ; if press and dynamite
+;        CALL NZ, killSkulls                 ; kill the skulls
 
         CALL chkSpriteCollision             ; check balloon collision
         CALL showHealth
@@ -342,37 +342,37 @@ paulFinish
         SCF                                 ; otherwise set carry flag
         RET                                 ; and return, dead
 
-killSkulls
-        PUSH IY
-        LD IY, balloonSpr
-        LD A, (balloonSprCnt)
-        LD C, 0                             ; skull kill count
-        LD B, A                             ; "balloons" to process
-ks0
-        LD A, (IY +sBalloon.pattern)        ; get pattern
-        CP skull                            ; was it a skull
-        JR NZ, ks1                          ; branch if not, next to test
-        INC A                               ; +1 to pattern -> explosion
-        LD (IY +sBalloon.pattern), A        ; set it
-        LD HL, 15                           ; and a little pop delay
-        LD (IY +sBalloon.popDelayH), H
-        LD (IY +sBalloon.popDelayL), L
-        INC C                               ; increase killed skulls count
-ks1
-        LD DE, sBalloon
-        ADD IY, DE
-        DJNZ ks0
-        POP IY
-        LD A, C                             ; get killed skulls count
-        AND A                               ; was it 0
-        RET Z                               ; return if so
-ks2
-        LD A, soundKillskull                ; make sound fx
-        CALL playsound
-        XOR A                               ; dynamite is exhausted
-        LD (dynamiteCnt), A
-        CALL showDynamite
-        RET
+;killSkulls
+;        PUSH IY
+;        LD IY, balloonSpr
+;        LD A, (balloonSprCnt)
+;        LD C, 0                             ; skull kill count
+;        LD B, A                             ; "balloons" to process
+;ks0
+;        LD A, (IY +sBalloon.pattern)        ; get pattern
+;        CP skull                            ; was it a skull
+;        JR NZ, ks1                          ; branch if not, next to test
+;        INC A                               ; +1 to pattern -> explosion
+;        LD (IY +sBalloon.pattern), A        ; set it
+;        LD HL, 15                           ; and a little pop delay
+;        LD (IY +sBalloon.popDelayH), H
+;        LD (IY +sBalloon.popDelayL), L
+;        INC C                               ; increase killed skulls count
+;ks1
+;        LD DE, sBalloon
+;        ADD IY, DE
+;        DJNZ ks0
+;        POP IY
+;        LD A, C                             ; get killed skulls count
+;        AND A                               ; was it 0
+;        RET Z                               ; return if so
+;ks2
+;        LD A, soundKillskull                ; make sound fx
+;        CALL playsound
+;        XOR A                               ; dynamite is exhausted
+;        LD (dynamiteCnt), A
+;        CALL showDynamite
+;        RET
 
 keyProcess
 ; this should only be called on a bounce

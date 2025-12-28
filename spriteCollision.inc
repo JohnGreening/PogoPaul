@@ -60,7 +60,7 @@ DW collidePoints, pointsbmp                 ; points landed
 DW noAction, $00                            ; sprite 26
 DW noAction, $00                            ; sprite 27
 DW noAction, $00                            ; sprite 28
-DW collideDynamite, dynamitebmp             ; dynamite landed
+DW noAction, $00                            ; dynamite landed
 DW noAction, $00                            ; sprite 30
 DW noAction, $00                            ; sprite 31
 DW noAction, $00                            ; sprite 32
@@ -147,14 +147,14 @@ collidePoints
         CALL showScore
         JP itemCollideCommon
 
-collideDynamite
-        CALL CS1
-        RET NC
-
-        LD A, 1
-        LD (dynamiteCnt), A
-        CALL showDynamite
-        JP itemCollideCommon
+;collideDynamite
+;        CALL CS1
+;        RET NC
+;
+;        LD A, 1
+;        LD (dynamiteCnt), A
+;        CALL showDynamite
+;        JP itemCollideCommon
 
 collideBalloon
         CALL CS1

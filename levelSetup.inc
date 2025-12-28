@@ -7,7 +7,7 @@ newGame
         LD HL, 0
         LD (score), HL
         XOR A
-        LD (dynamiteCnt), A
+;        LD (dynamiteCnt), A
         LD (keyCnt), A
         LD A, 3
         LD (lives), A
@@ -140,7 +140,7 @@ restartGame2
 levelUp
         CALL killSprites
         LD A, 0
-        LD (dynamiteCnt), A
+ ;       LD (dynamiteCnt), A
         LD (keyCnt), A
         CALL paulInit
         LD A, (LEVEL)
@@ -177,8 +177,8 @@ paulInit
         LD (health), A                      ; set it
         LD A, healthDefault                 ; health delay default
         LD (healthDelay), A                 ; set it
-        LD A, 0
-        LD (dynamiteCnt), A
+  ;      LD A, 0
+  ;      LD (dynamiteCnt), A
 
         RET
 
@@ -367,7 +367,7 @@ showTitles
         CALL showScore
         CALL showHiScore
         CALL showLives
-        CALL showDynamite
+        ;CALL showDynamite
         CALL showKey
 
         LD IX, balloonTemp
@@ -517,11 +517,10 @@ offScreen
 setupEnd
 ; get a random number 0-15
 ; item will be assigned as follows
-; 07 blank      38%  0 -  5
+; 07 blank      38%  0 -  5 & 15
 ; 24 points     24%  6 -  9
 ; 16 apple      24% 10 - 13
 ; 12 heart       7%      14
-; 28 dynamite    7%      15
         LD A, B                             ; get the count of balloons
         DEC A                               ; are we on the last one
         JR Z, assignKey                     ; branch if so
@@ -559,5 +558,5 @@ items
         DB apple
         DB apple
         DB heart
-        DB dynamite
+        DB blank
 

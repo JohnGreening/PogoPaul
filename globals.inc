@@ -133,12 +133,12 @@ tScroll
        DB 28,  0, " ", 170, 171, " will award an extra life            ", 255
        DB 28,  0, "                                        ", 255
 
-       DB 28,  0, " ", 184, 185, " use this to blast those nasties     ", 255
-       DB 28,  0, " ", 186, 187, " press 'space' in game to activate   ", 255
-       DB 28,  0, "                                        ", 255
-
        DB 28,  0, " ", 176, 177, " find the key to unlock your         ", 255
        DB 28,  0, " ", 178, 179, " escape route and level up           ", 255
+       DB 28,  0, "                                        ", 255
+
+       DB 28,  0, "                                        ", 255
+       DB 28,  0, "                                        ", 255
        DB 28,  0, "                                        ", 255
 
        DB 28,  0, " oh yeah, don't bang your head too much ", 255
@@ -156,7 +156,7 @@ iyScore      EQU tileMapData + 7
 iyHiScore    EQU tileMapData +23
 iyLives      EQU tileMapData + 36
 iyLevel      EQU tileMapData +662
-iyDynamite   EQU tileMapData +1205
+;iyDynamite   EQU tileMapData +1205
 iyKey        EQU tileMapData +1208
 tileCross    EQU 13
 tileTick     EQU 14
@@ -165,7 +165,7 @@ tileTick     EQU 14
 score        DW 0
 hiscore      DW 0
 lives        DB 3
-dynamiteCnt  DB 0
+;dynamiteCnt  DB 0
 keyCnt       DB 0
 features     DB 0
 LEVEL        DB 0
