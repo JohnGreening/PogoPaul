@@ -104,32 +104,32 @@ buildbmp
         LD IX, paulbmpL
         CALL buildbmp0
 
-        LD D, balloon
+        LD D, Sballoon
         LD C, 16
         LD IX, balloonbmp
         CALL buildbmp0
 
-        LD D, skull
+        LD D, Sskull
         LD C, 16
         LD IX, skullbmp
         CALL buildbmp0
 
-        LD D, heart
+        LD D, Sheart
         LD C, 16
         LD IX, heartbmp
         CALL buildbmp0
 
-        LD D, apple
+        LD D, Sapple
         LD C, 16
         LD IX, applebmp
         CALL buildbmp0
 
-        LD D, key
+        LD D, Skey
         LD C, 16
         LD IX, keybmp
         CALL buildbmp0
 
-        LD D, points
+        LD D, Spoints
         LD C, 16
         LD IX, pointsbmp
         CALL buildbmp0

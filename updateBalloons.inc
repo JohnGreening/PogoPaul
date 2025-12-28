@@ -82,13 +82,13 @@ balloonPop
         CP blank
         JP Z, deadItem
 
-        CP balloon +3                       ; is it now fully popped
+        CP Sballoon +3                       ; is it now fully popped
         JR Z, fullyPopped                   ; branch if so
 
-        CP skull + 3
+        CP Sskull + 3
         JP Z, deadItem
 
-        CP balloon
+        CP Sballoon
         JR NZ, popDone
 
         ; here it should be a balloon that has popped on its own
@@ -96,9 +96,9 @@ balloonPop
         LD A, soundPop
         CALL playsound
         LD A, (IX +sBalloon.newSprite)
-        CP key
+        CP Skey
         JR Z, popDone
-        LD A, skull
+        LD A, Sskull
         LD (IX +sBalloon.newSprite), A
         LD A, skullDelay
         LD (IX +sBalloon.landValue), A
@@ -129,7 +129,7 @@ fullyPopped
         LD A, (IY +sBalloon.pattern)        ; get current Pattern
         CP 255                              ; if it's 255, we're at end
         JP Z, balloonEnd
-        LD A, balloon
+        LD A, Sballoon
         LD (IY +sBalloon.pattern), A
         LD A, B
         INC A

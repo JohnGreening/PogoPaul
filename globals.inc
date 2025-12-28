@@ -65,18 +65,27 @@ bounceTable
         DB   4,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
         
 skullDelay equ 2
+
 ;-------------------------------------------------------
 ; pattern nymbers for the sprites
 ;-------------------------------------------------------
 toxic          EQU 33
-skull          EQU 4
-balloon        EQU 8
+Sskull          EQU 4
+Sballoon        EQU 8
 blank          EQU 32
-heart          EQU 12
-apple          EQU 16
-key            EQU 20
-points         EQU 24
+Sheart          EQU 12
+Sapple          EQU 16
+Skey            EQU 20
+Spoints         EQU 24
 dynamite       EQU 28
+
+;-------------------------------------------------------
+; tilr nymbers for the tiles
+;-------------------------------------------------------
+tileCross    EQU 13
+tileTick     EQU 14
+
+
 
 maxLevel EQU 8
 levelLen EQU 9
@@ -158,8 +167,6 @@ iyLives      EQU tileMapData + 36
 iyLevel      EQU tileMapData +662
 ;iyDynamite   EQU tileMapData +1205
 iyKey        EQU tileMapData +1208
-tileCross    EQU 13
-tileTick     EQU 14
 
 
 score        DW 0

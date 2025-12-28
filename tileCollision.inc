@@ -132,16 +132,16 @@ itemTileCollision
         LD B, A                             ; how many pixels into next char across
 
         LD A, (IX +sBalloon.pattern)
-        CP heart
+        CP Sheart
         JR Z, heartCollision
-        CP apple
+        CP Sapple
         JR Z, appleCollision
-        CP key
+        CP Skey
         JR Z, keyCollision
-        CP points
+        CP Spoints
         JR Z, pointsCollision
-        CP dynamite
-        JR Z, dynamiteCollision
+;        CP dynamite
+;        JR Z, dynamiteCollision
         JR ITCEnd
 
 heartCollision

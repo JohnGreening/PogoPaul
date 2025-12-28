@@ -43,7 +43,6 @@ keyUp
 
 showPaul0
         LD IX, manSprite                    ; point to Paul data
-;        LD DE, spriteY
         LD A, (riseCnt)                     ; determine vertical direction, >0 is rising
         DEC A                               ; sub 1
         JP M, paulFalling                   ; branch if minus, i.e. was already 0
@@ -52,16 +51,10 @@ showPaul0
 
 paulRising
         DEC (IX +sBalloon.lowY)             ; otherwise move Paul up
-;        LD A, (DE)
-;        DEC A
-;        LD (DE), A
         JR doLeftRight                      ; end of rise processing
 
 paulFalling
         INC (IX +sBalloon.lowY)             ; move Paul down
-;        LD A, (DE)
-;        INC A
-;        LD (DE), A
 
 doLeftRight
 ; so here we decide if Paul is allowed to move left/right
@@ -142,9 +135,9 @@ leftrightEnd
         CALL NZ, keySpace
 
 .diagnosticsEnd
-        LD A, (hitind)
-        AND A
-        JP Z, paulFinish
+        LD A, (hitind)                      ; get collision occured indicator
+        AND A                               ; is it non 0
+        JP Z, paulFinish                    ; branch over if 0
 
 ; here xy coords have been updated and we have detected a collision
 ; has occured
@@ -153,48 +146,30 @@ leftrightEnd
 ; hitind1 is the lowest pixel line with collision
 ; hitind  is the highest pixel line with collision
 tileCollision
-        LD A, (hitind1)                     ; get high point of hit
-        CP 22                               ; bottom of pogo stick?
-        JP nc, bounce                       ; if A >= 24, this is a bounce
-
-;        CP 26                               ; near bottom of pogo stick
-;        JR C, tileCollision1                ; branch if not
-                                            ; but check low point to ensure
-;        LD A, (hitind)                     ; that it's still a bounce
-;        CP 31
-;        JR NZ tileCollision1               ; branch if its not
-
-;        CALL reverseX1                      ; kinda bounce but reverse any
-;        JP bounce                           ; left/right movement and bounce
+        LD A, (hitind1)                     ; get lowest pixel line of collision
+        CP 22                               ; bottom ish of pogo stick?
+        JP nc, bounce                       ; if A >= 22, this is a bounce
 
 tileCollision1
-;        LD A, (riseCnt)
-;        AND A
-;        JR Z, hitFalling
-;        JR hitRising
-
-; hit whilst rising
-hitRising
-        LD A, soundHithead
-        CALL playsound
-
-        LD A, (hitind1)                     ; see highpoint of hit
         CP 8
-        JR NC, hitRising1                   ; A >= 8, dont decrease health if so
+        JR NC, .notHeadHit                  ; A >= 8, dont decrease health if so
 
         LD A, (healthDelay)                 ; get current health delay
         SUB 3                               ; decrease it
         AND %00001111
         LD (healthDelay), A                 ; and save it
         CP 0                                ; was it 0
-        JR NZ, hitRising1                   ; branch over if not
+        JR NZ, .notHeadHit                  ; branch over if not
         LD A, healthDefault                 ; get default health delay
         LD (healthDelay), A                 ; and reset health delay
         LD A, (health)                      ; get current health
         DEC A                               ; decrease it
         LD (health), A                      ; and save it
 
-hitRising1
+.notHeadHit
+        LD A, soundHithead
+        CALL playsound
+
         CALL reverseX1                      ; reverse previous left/right
 
         ld a, (riseCnt)                     ; obtain riseCnt, i.e. were we jumping or falling
@@ -209,9 +184,6 @@ hitRising1
         INC (IX +sBalloon.lowY)             ; reverse jumping, move Paul down
         jr .hr3                             ; done
 
-        ;LD A, (DE)
-        ;INC A
-        ;LD (DE), A
 .hr3
         XOR A                               ; Paul is now falling
         LD (riseCnt), A                     ; set it
@@ -221,72 +193,10 @@ hitRising1
         ld a, (hitind1)                     ; get lowest pixel line of collision
         cp b                                ; same as highest?
         jp z, paulFinish                    ; jump if so, e.g. 6/6, 7/7 etc
-       ; CP 6                                ; if its just Paul's head
-       ; JP Z, paulFinish
-       ; cp 7
-       ; jp z, paulFinish
-
 
         XOR A                               ; A=0
         LD (spriteDirH), A                  ; sdet direction to 0 (none)
         JP paulFinish                       ; done
-
-
-;hitFalling
-        ; hit whilst falling, but it is not a bounce?!
-;        LD A, (hitLind)
-;        LD B, A
-;        LD A, (hitRind)
-;        LD C, A
-;        LD A, (manPat)
-;        CP facingLeft
-;        JR Z, fallingLeft
-;        JR fallingRight
-
-;fallingLeft
-;        LD A, B
-;        AND C
-;        CP 1
-;        JR Z, FLEnd
-;        LD A, B
-;        CP 1
-;        JR Z, FLhitL
-;        JR FLhitR
-
-;FLhitL
-;        CALL reverseX1
-;        JR FLEnd
-;FLhitR
- ;       CALL movePaulLeft
- ;       JR FLEnd
-
-;fallingRight
-;        LD A, B
-;        AND C
-;        CP 1
-;        JR Z, FLEnd
-;        LD A, C
-;        CP 1
-;        JR Z, FRhitR
-;        JR FRhitL
-;FRhitR
-;        CALL reverseX1
-;        JR FLEnd
-;FRhitL
-;        CALL movePaulRight
-;        JR FLEnd
-
-;FLEnd
-     ;   LD A, (DE)
-     ;   DEC A
-     ;   LD (DE), A
- ;       DEC (IX +sBalloon.lowY)
- ;       LD A, nothing
- ;       LD (spriteDirH), A
- ;       LD A, (hitind)
- ;       CP 31
- ;       JR Z, bounce
- ;       JP paulFinish
 
 bounce
 ; here we were either falling and glanced or fully hit the ground
@@ -301,13 +211,6 @@ bounce
         LD (sound3Dur), A                   ; set duration related to strength
         LD A, soundBounce
         CALL playsound
-
-    ;    LD A, (DE)
-    ;    DEC A
-    ;    LD (DE), A
-    ;    LD HL, (spriteY)
-    ;    DEC HL
-    ;    LD (spriteY), HL
 
         DEC (IX +sBalloon.lowY)             ; move Paul up
 
@@ -325,15 +228,6 @@ bounce
 paulFinish
         CALL showPaul1                      ; show man sprite
 
-;        LD BC, $7ffe                        ; ready keypoard port
-;        IN A, (C)                           ; read it
-;        AND %00000001                       ; mask except spacebar
-;        XOR %00000001                       ; reverse so press = 1
-;        LD B, A                             ; save in B
-;        LD A, (dynamiteCnt)                 ; see if we have any dynamite
-;        AND B                               ; if press and dynamite
-;        CALL NZ, killSkulls                 ; kill the skulls
-
         CALL chkSpriteCollision             ; check balloon collision
         CALL showHealth
         LD A, (health)                      ; get health value
@@ -341,38 +235,6 @@ paulFinish
         RET NZ                              ; return if not
         SCF                                 ; otherwise set carry flag
         RET                                 ; and return, dead
-
-;killSkulls
-;        PUSH IY
-;        LD IY, balloonSpr
-;        LD A, (balloonSprCnt)
-;        LD C, 0                             ; skull kill count
-;        LD B, A                             ; "balloons" to process
-;ks0
-;        LD A, (IY +sBalloon.pattern)        ; get pattern
-;        CP skull                            ; was it a skull
-;        JR NZ, ks1                          ; branch if not, next to test
-;        INC A                               ; +1 to pattern -> explosion
-;        LD (IY +sBalloon.pattern), A        ; set it
-;        LD HL, 15                           ; and a little pop delay
-;        LD (IY +sBalloon.popDelayH), H
-;        LD (IY +sBalloon.popDelayL), L
-;        INC C                               ; increase killed skulls count
-;ks1
-;        LD DE, sBalloon
-;        ADD IY, DE
-;        DJNZ ks0
-;        POP IY
-;        LD A, C                             ; get killed skulls count
-;        AND A                               ; was it 0
-;        RET Z                               ; return if so
-;ks2
-;        LD A, soundKillskull                ; make sound fx
-;        CALL playsound
-;        XOR A                               ; dynamite is exhausted
-;        LD (dynamiteCnt), A
-;        CALL showDynamite
-;        RET
 
 keyProcess
 ; this should only be called on a bounce
@@ -392,8 +254,8 @@ keyLeft
         LD (spriteDirH), A
 
 keyRight
-        ;LD BC, $dffe                        ; keys Y U I O P
-        ;IN A, (C)
+        LD BC, $dffe                        ; keys Y U I O P
+        IN A, (C)
         BIT 0, A
         JR NZ, keyEnd
 

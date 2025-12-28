@@ -168,7 +168,7 @@ collideBalloon
         CALL playsound
 
         LD IY, (collisionInx)
-        LD A, balloon +1
+        LD A, Sballoon +1
         JR itemHitCommon
 
 itemCollideCommon

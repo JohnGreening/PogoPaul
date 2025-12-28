@@ -116,9 +116,9 @@ restartGame1
         LD A, (IX +sBalloon.pattern)        ; get balloon pattern
         CP 255                              ; are we at the end
         JR Z, commonInit                    ; branch if so
-        CP skull                            ; is pattern a skull
+        CP Sskull                           ; is pattern a skull
         JR NZ, restartGame2                 ; branch over if not
-        LD A, balloon                       ; change skull back to balloon
+        LD A, Sballoon                      ; change skull back to balloon
         LD (IX +sBalloon.pattern), A        ; - set pattern
         LD HL, 0                            ;
         LD (IX +sBalloon.lowX), L           ; - set X coord as lhs
@@ -370,19 +370,19 @@ showTitles
         ;CALL showDynamite
         CALL showKey
 
-        LD IX, balloonTemp
+;        LD IX, balloonTemp
 ;        LD (IX +sBalloon.index), 52
 ;        LD (IX +sBalloon.pattern), dynamite
 ;        LD (IX +sBalloon.lowX), 32
 ;        LD (IX +sBalloon.highX), 0
 ;        LD (IX +sBalloon.lowY), 224
 ;        CALL showSP1
-        LD (IX +sBalloon.index), 53
-        LD (IX +sBalloon.pattern), key
-        LD (IX +sBalloon.lowX), 56
-        LD (IX +sBalloon.highX), 0
-        LD (IX +sBalloon.lowY), 224
-        CALL showSP1
+;        LD (IX +sBalloon.index), 53
+;        LD (IX +sBalloon.pattern), key
+;        LD (IX +sBalloon.lowX), 56
+;        LD (IX +sBalloon.highX), 0
+;        LD (IX +sBalloon.lowY), 224
+;        CALL showSP1
 
         RET
 
@@ -498,7 +498,7 @@ createBalloon
              JR NC, offScreen
 
 onScreen
-             LD A, balloon                  ; on screen, so pattern is balloon
+             LD A, Sballoon                 ; on screen, so pattern is balloon
              LD (IX +sBalloon.pattern), A
 
              CALL randomX                   ; get a random X coord in HL
@@ -537,7 +537,7 @@ assignKey
         LD A, (keyCnt)
         AND A
         JR NZ, assignItem1
-        LD A, key
+        LD A, Skey
         LD (IX +sBalloon.newSprite), A       ; may spawn into
 
         RET
@@ -549,14 +549,14 @@ items
         DB blank
         DB blank
         DB blank
-        DB points
-        DB points
-        DB points
-        DB points
-        DB apple
-        DB apple
-        DB apple
-        DB apple
-        DB heart
+        DB Spoints
+        DB Spoints
+        DB Spoints
+        DB Spoints
+        DB Sapple
+        DB Sapple
+        DB Sapple
+        DB Sapple
+        DB Sheart
         DB blank
 
