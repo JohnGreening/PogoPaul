@@ -35,36 +35,23 @@ DW noAction, $00                            ; sprite  0
 DW noAction, $00                            ; sprite  1
 DW noAction, $00                            ; sprite  2
 DW noAction, $00                            ; sprite  3
-DW collideSkull, skullbmp                   ; skull
+DW collideBalloon, balloonbmp               ; 4 balloon
 DW noAction, $00                            ; sprite  5
 DW noAction, $00                            ; sprite  6
 DW noAction, $00                            ; sprite  7
-DW collideBalloon, balloonbmp               ; balloon
-DW noAction, $00                            ; sprite  9
-DW noAction, $00                            ; sprite 10
-DW noAction, $00                            ; sprite 11
-DW noAction, $00                            ; sprite 12
-DW collideHeart, heartbmp                   ; heart landed
-DW noAction, $00                            ; sprite 14
-DW noAction, $00                            ; sprite 15
+DW noAction, $00                            ; sprite  8
+DW collideHeart, heartbmp                   ; 9 heart landed
+DW noAction, $00                            ; sprite  10
+DW collideApple, applebmp                   ; 11 apple landed
+DW noAction, $00                            ; sprite  12
+DW collideKey, keybmp                       ; 13 key landed
+DW noAction, $00                            ; sprite  14
+DW collidePoints, pointsbmp                 ; 15 points landed
 DW noAction, $00                            ; sprite 16
-DW collideApple, applebmp                   ; apple landed
-DW noAction, $00                            ; sprite 18
-DW noAction, $00                            ; sprite 19
-DW noAction, $00                            ; sprite 20
-DW collideKey, keybmp                       ; key landed
-DW noAction, $00                            ; sprite 22
-DW noAction, $00                            ; sprite 23
-DW noAction, $00                            ; sprite 24
-DW collidePoints, pointsbmp                 ; points landed
-DW noAction, $00                            ; sprite 26
-DW noAction, $00                            ; sprite 27
-DW noAction, $00                            ; sprite 28
-DW noAction, $00                            ; dynamite landed
-DW noAction, $00                            ; sprite 30
-DW noAction, $00                            ; sprite 31
-DW noAction, $00                            ; sprite 32
-DW CS1, toxicbmp                            ; toxic drop
+DW collideSkull, skullbmp                   ; 17 skull
+DW CS1, toxicbmp                            ; 18 toxic drop
+
+
 
 ;--------------------------------------------------------------------------
 ; A is passed with "balloon" sprite pattern to check against

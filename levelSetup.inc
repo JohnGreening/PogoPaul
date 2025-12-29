@@ -26,25 +26,26 @@ newGame
 
         LD IX, balloonTemp
         LD (IX +strucBalloon.index), 52
-        LD (IX +strucBalloon.pattern), 8
+        LD (IX +strucBalloon.pattern), Sballoon
         LD (IX +strucBalloon.lowX), 208
         LD (IX +strucBalloon.highX), 0
         LD (IX +strucBalloon.lowY), 8
         CALL showSP1
         LD (IX +strucBalloon.index), 53
-        LD (IX +strucBalloon.pattern), 8
+        LD (IX +strucBalloon.pattern), Sballoon
         LD (IX +strucBalloon.lowX), 232
         LD (IX +strucBalloon.highX), 0
         LD (IX +strucBalloon.lowY), 24
         CALL showSP1
 
-        LD IX, manSprite
-        LD A, 1
-        LD (strengthInd), A
-        LD A, 18
-        LD (riseCnt), A
-        LD A, nothing
-        LD (IX +strucBalloon.dirH), A
+;        LD IX, manSprite
+;        LD A, 1
+;        LD (strengthInd), A
+;        LD A, 18
+;        LD (riseCnt), A
+;        LD A, nothing
+;        LD (IX +strucBalloon.dirH), A
+        CALL paulInit
         CALL showPaul1
 
         LD IY, tScroll                      ; point to scrolling instructions
@@ -66,7 +67,7 @@ waitSpace1
 
         LD A, 12
         LD (volume), A
-        LD A, 0                             ; starting level
+        LD A, 2                             ; starting level
         LD (LEVEL), A
         JP commonInit
 
@@ -481,10 +482,12 @@ createBalloon
              LD (IX +strucBalloon.landValue), A
 
              LD A, (maxOnScreen)
-             CP B
-             JR NC, offScreen
+;             CP B
+;             JR NC, offScreen
+             CP C
+             JR C, .offScreen
 
-onScreen
+.onScreen
              LD A, Sballoon                 ; on screen, so pattern is balloon
              LD (IX +strucBalloon.pattern), A
 
@@ -493,7 +496,7 @@ onScreen
              LD (IX +strucBalloon.highX), H     ; set in balloon data
              JR setupEnd
 
-offScreen
+.offScreen
              LD A, Sblank                    ; off screen, so pattern is blank
              LD (IX +strucBalloon.pattern), A
              LD HL, 0                       ; set X as 0

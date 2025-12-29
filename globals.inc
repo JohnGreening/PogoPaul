@@ -69,15 +69,16 @@ skullDelay equ 2
 ;-------------------------------------------------------
 ; pattern nymbers for the sprites
 ;-------------------------------------------------------
-Stoxic          EQU 33
-Sskull          EQU 4
-Sballoon        EQU 8
-Sblank          EQU 32
-Sheart          EQU 12
-Sapple          EQU 16
-Skey            EQU 20
-Spoints         EQU 24
-dynamite       EQU 28
+SpaulFacingR    EQU 0                       ; 0= top facing Right, 1= bottom facing right
+SpaulFacingL    EQU 2
+Sballoon        EQU 4
+Sheart          EQU 8
+Sapple          EQU 10
+Skey            EQU 12
+Spoints         EQU 14
+Sblank          EQU 16
+Sskull          EQU 17
+Stoxic          EQU 18
 
 ;-------------------------------------------------------
 ; tilr nymbers for the tiles

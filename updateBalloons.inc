@@ -26,42 +26,30 @@ balloonUpt1
         JP (HL)                             ; jump to action required
 
 balloonAction
-DW balloonEnd                               ; pattern  0
-DW balloonEnd                               ; pattern  1
-DW balloonEnd                               ; pattern  2
-DW balloonEnd                               ; pattern  3
-DW skull1                                   ; Skull pattern
-DW doBalloon                                ; Skull exploding #1
-DW doBalloon                                ; Skull exploding #2
-DW doBalloon                                ; Skull exploding #3
-DW doBalloon                                ; Balloon
-DW doBalloon                                ; Balloon popping #1
-DW doBalloon                                ; Balloon popping #2
-DW doBalloon                                ; Balloon popping #3
-DW itemFalling                              ; Heart falling
-DW balloonEnd                               ; Heart landed
-DW balloonEnd                               ; pattern 14
-DW balloonEnd                               ; pattern 15
-DW itemFalling                              ; Apple falling
-DW balloonEnd                               ; Apple landed
-DW balloonEnd                               ; pattern 18
-DW balloonEnd                               ; pattern 19
-DW itemFalling                              ; Key falling
-DW balloonEnd                               ; Key landed
-DW balloonEnd                               ; pattern 22
-DW balloonEnd                               ; pattern 23
-DW itemFalling                              ; Points falling
-DW balloonEnd                               ; Points landed
-DW balloonEnd                               ; pattern 26
-DW balloonEnd                               ; pattern 27
-DW itemFalling                              ; Dynamite falling
-DW balloonEnd                               ; Dynamite landed
-DW balloonEnd                               ; pattern 30
-DW balloonEnd                               ; pattern 31
-DW balloonEnd                               ; blank sprite
-DW toxic1                                   ; Toxic drop
+DW balloonEnd                               ;  0
+DW balloonEnd                               ;  1
+DW balloonEnd                               ;  2
+DW balloonEnd                               ;  3
+DW doBalloon                                ;  4 Balloon
+DW doBalloon                                ;  5 Balloon popped #1
+DW doBalloon                                ;  6 Balloon popped #2
+DW doBalloon                                ;  7 Balloon popped #3
+DW itemFalling                              ;  8 Heart falling
+DW balloonEnd                               ;  9 Heart landed
+DW itemFalling                              ; 10 Apple falling
+DW balloonEnd                               ; 11 Apple landed
+DW itemFalling                              ; 12 key falling
+DW balloonEnd                               ; 13 key landed
+DW itemFalling                              ; 14 points falling
+DW balloonEnd                               ; 15 points landed
+DW balloonEnd                               ; 16 blank pattern
+DW skull1                                   ; 17 skull pattern
+DW toxic1                                   ; 18 toxic drop pattern
 
 doBalloon
+        ;LD A, (IX +strucBalloon.newSprite)
+        ;CP Skey
+        ;JP Z, moveBalloonRight
         LD L, (IX +strucBalloon.popDelayL)      ; get the pop delay low byte
         LD H, (IX +strucBalloon.popDelayH)      ; get the pop delay high byte
         DEC HL                              ; decrease count
