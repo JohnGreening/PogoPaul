@@ -212,17 +212,9 @@ bounce
         LD A, soundBounce
         CALL playsound
 
-        DEC (IX +strucBalloon.lowY)             ; move Paul up
+        DEC (IX +strucBalloon.lowY)         ; move Paul up
 
-        LD A, (strengthInd)                 ; get index into bounce table
-        LD HL, bounceTable                  ; point to bounce table
-        ADD HL, A                           ; add offset for strength
-        LD A, (HL)                          ; get the rise count
-        LD (riseCnt), A                     ; and store
-        ADD HL, 16                          ; point to left/right delay
-        LD A, (HL)                          ; get the left/right delay
-        LD (leftRightCount), A              ; and store it
-        LD (leftRightDelay), A
+        CALL setRiseCnt                     ; set riseCnt and lrDelay
         CALL keyProcess
 
 paulFinish
@@ -285,4 +277,16 @@ reverseX1
         JR Z, movePaulRight
         CP facingRight
         JR Z, movePaulLeft
+        RET
+
+setRiseCnt
+        LD A, (strengthInd)                 ; get index into bounce table
+        LD HL, bounceTable                  ; point to bounce table
+        ADD HL, A                           ; add offset for strength
+        LD A, (HL)                          ; get the rise count
+        LD (riseCnt), A                     ; and store
+        ADD HL, 16                          ; point to left/right delay
+        LD A, (HL)                          ; get the left/right delay
+        LD (leftRightCount), A              ; and store it
+        LD (leftRightDelay), A
         RET

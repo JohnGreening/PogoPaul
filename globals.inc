@@ -8,7 +8,20 @@ paulXL          byte
 paulXH          byte
 paulYL          byte
 paulYH          byte
-        ENDS
+toxicCnt        byte
+toxic1XL        byte
+toxic1XH        byte
+toxic1YL        byte
+toxic1YH        byte
+toxic2XL        byte
+toxic2XH        byte
+toxic2YL        byte
+toxic2YH        byte
+toxic3XL        byte
+toxic3XH        byte
+toxic3YL        byte
+toxic3YH        byte
+    ENDS
         
     struct strucBalloon
 index       byte                            ; index for sprite system 0-99
@@ -33,6 +46,14 @@ balloonTemp defs strucBalloon
 balloonSprCnt  DB 0                         ; balloon count set for level
 maxOnScreen    DB 0                         ; max balloons allowed on screen at a time, set for level
 balloonNext    DB 0                         ; next free balloon
+toxicCnt       DB 0
+toxic1Y        DW 00
+toxic1X        DW 00
+toxic2Y        DW 00
+toxic2X        DW 00
+toxic3Y        DW 00
+toxic3X        DW 00
+
 
 maxX EQU 320
 minX EQU 0

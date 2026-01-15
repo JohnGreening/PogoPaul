@@ -134,10 +134,10 @@ buildbmp
         LD IX, pointsbmp
         CALL buildbmp0
 
-;        LD D, dynamite
-;        LD C, 16
-;        LD IX, dynamitebmp
-;        CALL buildbmp0
+        LD D, Stoxic
+        LD C, 16
+        LD IX, toxicbmp
+        CALL buildbmp0
 
         CALL bitmapTiles
         RET

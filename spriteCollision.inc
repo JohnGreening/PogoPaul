@@ -49,7 +49,8 @@ DW noAction, $00                            ; sprite  14
 DW collidePoints, pointsbmp                 ; 15 points landed
 DW noAction, $00                            ; sprite 16
 DW collideSkull, skullbmp                   ; 17 skull
-DW CS1, toxicbmp                            ; 18 toxic drop
+;DW CS1, toxicbmp                            ; 18 toxic drop
+DW collideSkull, toxicbmp
 
 
 

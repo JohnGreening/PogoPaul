@@ -107,11 +107,21 @@ randomX
         RET
 
 keySpace
+        PUSH BC
+        PUSH AF
+.keySpace1
         LD BC, $7ffe                        ; port for keys: space, sym, mnb
         IN A, (C)                           ; read port
         BIT 0, A                            ; test for space key
-        RET Z                               ; return if pressed
-        JR keySpace                         ; otherwise loop
+        JR Z, .keySpace2                    ; jump if pressed
+        JR .keySpace1                       ; otherwise loop
+.keySpace2
+        IN A, (C)
+        BIT 0, A
+        JR Z, .keySpace2
+        POP AF
+        POP BC
+        RET
 
 LFSRSeed DB $12, $34, $56, $78, $9a, $bc, $de, $f0
 rseed    DB 1
