@@ -92,9 +92,11 @@ dynamitebmp DEFS 72, 0
 ; the remaining files are used for the text output
 tilebmp  DEFS 256, 0
 
-
+;
+; here we create old school 1 bit bitmap of each sprite to use in collision detection
+;
 buildbmp
-        LD D, 0                             ; set the sprite number to convert
+        LD D, 0                             ; sprite to convert
         LD C, 32                            ; set pixel lines in sprite
         LD IX, paulbmpR                     ; point to destination bmp
         CALL buildbmp0                      ; convert
@@ -143,30 +145,31 @@ buildbmp
         RET
 
 buildbmp0
-        LD E, 0                             ; sprites are 256b
-        LD HL, SpritePatterns               ; set base for pattern
+        LD E, 0                             ; each sprite is 256 bytes, D (high byte offset) is set above
+        LD HL, SpritePatterns               ; set base for pattern (in c.inc file)
         ADD HL, DE                          ; add in offset
 
         LD D, C                             ; loop for all pixel lines
 spriteLoop
-        LD C, 2                             ; byte loop for 2 x 8 pixel defs
+        LD C, 2                             ; loop twice since sprites are 2 x 8 pixels
 build0
-        LD B, 8                             ; loop for 8 defs to make our bm byte
+        LD B, 8                             ; loop for 8 pixels to make our bitmap byte
         LD E, 0                             ; initialse our bitmap byte
 build1
-        LD A, (HL)                          ; get a pixel def
+        LD A, (HL)                          ; one byte from SpritePatterns = 1 bit in bitmap
         AND A                               ; is it 0
         JR Z, bit0                          ; jump if its 0
-        JR bit1                             ; jump if its 1
+        JR bit1                             ; jump if its non 0
 build2
-        INC HL                              ; point to next pixel def
+        INC HL                              ; point to next pixel in SpritePatterns
         DJNZ build1                         ; loop if more
+
         LD (IX +0), E                       ; set bitmap byte
         INC IX                              ; ready for next bitmap byte
         DEC C                               ; dec byte loop
         JR NZ, build0                       ; loop if more bytes
 
-        INC IX                              ; skip over the bitmap right pad
+        INC IX                              ; skip over the bitmap rightmost padding
         DEC D                               ; dec pixel line count
         JR NZ, spriteLoop                   ; loop if more pixel lines
         RET
@@ -226,9 +229,9 @@ nib21
         SET 0, E
         JR nib2Done
 
-copystrucLevelData
-        LD HL, level0
-        LD DE, roomData
-        LD BC, strucLevelData * (splashLevel +1)
-        LDIR
-        RET
+;copystrucLevelData
+;        LD HL, level0
+;        LD DE, roomData
+;        LD BC, strucLevelData * (splashLevel +1)
+;        LDIR
+;        RET

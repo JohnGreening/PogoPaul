@@ -1,6 +1,6 @@
-; --------------------------------
+;
 ; Draw Pogo Power Meter (15 bars)
-; --------------------------------
+;
 showPower:
         LD A, (strengthInd)                 ; A = current strength (1–16)
         LD E, A                             ; Save for use in loop
@@ -35,9 +35,9 @@ showPower:
         RET
 
 
-; --------------------------------
+;
 ; Draw Paul's Health Meter (15 bars)
-; --------------------------------
+;
 showHealth:
         LD A, (features)                    ; Get page features
         BIT 0, A                            ; Is health display disabled?
@@ -75,6 +75,9 @@ showHealth:
         DJNZ .drawHealthBar                 ; Loop for all 15 bars
         RET
 
+;
+; display the current score and hi-score if broken
+;
 showScore
         PUSH IY
         LD IY, iyScore
@@ -96,7 +99,9 @@ showHiScore
         CALL DispHL
         POP IY
         RET
-
+;
+; show number of lives remaining
+;
 showLives
         PUSH IY
         LD IY, iyLives
@@ -104,7 +109,9 @@ showLives
         CALL DispA1
         POP IY
         RET
-
+;
+; show key and whether obtained (tick) or not (cross). Show exit if obtained
+;
 showKey
         ld A, Tkey                          ; tile start for key 1/4                           
         LD HL, tileMapData +1121            ; tilemap position

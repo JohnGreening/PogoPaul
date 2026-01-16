@@ -210,7 +210,8 @@ showLevel
 
 createLevel
 ; A passed with room number 0-9 to create
-        LD IY, roomData                             ; point to base room/level data
+;        LD IY, roomData                             ; point to base room/level data
+        LD IY, level0
         LD E, A                                     ; get the room number into E
         LD D, strucLevelData                        ; get the room data length
         MUL D, E                                    ; multiply
@@ -264,22 +265,15 @@ createLevel
         CALL createTileMap
         RET
 
-roomData defs strucLevelData * (splashLevel +1)
-; feature byte
-;   bit 7
-;   bit 6
-;   bit 5
-;   bit 4
-;   bit 3
-;   bit 2
-;   bit 1
-;   bit 0 - 1 = disable keyboard for level (splash instruction screen)
-
+;roomData defs strucLevelData * (splashLevel +1)
+;
+; the level or "room" data
+;
 level0
         DW page000                          ; address of screen data
         DB 10                               ; level balloon count
         DB 5                                ; level max on screen
-        DB %00000000                        ; feature byte
+        DB %00000000                        ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
         DW 144                              ; Paul's starting X
         DW 216                              ; Paul's starting Y
         DB 0                                ; toxic cnt
@@ -408,7 +402,9 @@ level0
         DW 0                                ; toxic 3 Y
         DW 0                                ; Toxic 3 X
 
-
+;
+; create tilemap from the compressed data
+;
 createTileMap
 ; DE passed with address of room data to display
         LD HL, tileMapData      ; HL points to the tileMap address
@@ -430,7 +426,12 @@ CTM1
 CTME
         RET                      ; return
 
-
+;
+; display the text for the screen
+; e.g. "pogo power" + meter
+;      "health" + meter
+;       score, hi-score, lives, key etc
+;
 showTitles
         CALL showPower
         displayText tPower1
