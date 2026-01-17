@@ -285,17 +285,17 @@ createLevel
         LD L, (IY +strucLevelData.toxic1XL)           
         LD H, (IY +strucLevelData.toxic1XH)
         LD (toxic1X), HL
-        LD L, (IY +strucLevelData.toxic1YL)           
-        LD H, (IY +strucLevelData.toxic1YH)
+        LD L, (IY +strucLevelData.toxic2YL)           
+        LD H, (IY +strucLevelData.toxic2YH)
         LD (toxic2Y), HL
-        LD L, (IY +strucLevelData.toxic1XL)           
-        LD H, (IY +strucLevelData.toxic1XH)
+        LD L, (IY +strucLevelData.toxic2XL)           
+        LD H, (IY +strucLevelData.toxic2XH)
         LD (toxic2X), HL
-        LD L, (IY +strucLevelData.toxic1YL)           
-        LD H, (IY +strucLevelData.toxic1YH)
+        LD L, (IY +strucLevelData.toxic3YL)           
+        LD H, (IY +strucLevelData.toxic3YH)
         LD (toxic3Y), HL
-        LD L, (IY +strucLevelData.toxic1XL)           
-        LD H, (IY +strucLevelData.toxic1XH)
+        LD L, (IY +strucLevelData.toxic3XL)           
+        LD H, (IY +strucLevelData.toxic3XH)
         LD (toxic3X), HL
 
 
@@ -335,18 +335,20 @@ level0
         DW 0                                ; Toxic 3 X
 
 
+; toxic1 co-ords x=56, y=19
+; toxic2 co-ords x=160  , y=19
         DW page002                          ; level 2
         DB 12
         DB 5
         DB %00000000
         DW 144, 216
-        DB 1                                ; toxic cnt
+        DB 3                               ; toxic cnt
         DW 56                               ; toxic 1 X
         DW 19                               ; toxic 1 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 3 X
-        DW 0                                ; Toxic 3 Y
+        DW 160                                ; toxic 2 X
+        DW 19                              ; toxic 2 Y
+        DW 264                                ; toxic 3 X
+        DW 19                                ; Toxic 3 Y
 
         DW page003                          ; level 3
         DB 13
