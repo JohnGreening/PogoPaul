@@ -1,9 +1,10 @@
-
+;
 ; NEXTREG is used to write to Next/TBBlue feature control registers
 ; but there isn't a equivalent instruction to do a read
 ; instead 
 ;    we write to port $243B to select the register to write to
 ;    and then read the value back from port $253B
+;
 ReadNextReg
         PUSH BC
         LD BC, $243b
@@ -85,13 +86,24 @@ random
         LD (rseed),A
         RET
 
+;
+; used in setting balloon Y co-ord
+; basically get a random number 0-15
+; and get the correspondng value from the rndY table below
+;
 randomY
-        CALL random1                        ; get a random number 0-255
-        AND %00001111                       ; mask off so now its 0-15
-        LD HL, rndY                         ; point to rndY table
-        ADD HL, A                           ; add in rnd offset
-        LD A, (HL)                          ; pick up the value from the table
-        RET                                 ; return it
+        CALL random1                                ; get a random number 0-255
+        AND %00001111                               ; mask off so now its 0-15
+        LD HL, rndY                                 ; point to rndY table
+        ADD HL, A                                   ; add in rnd offset
+        LD A, (HL)                                  ; pick up the value from the table
+        RET                                         ; return it
+
+;
+; used in setting balloon X co-ord
+; basically get a random number 0-15
+; and get the correspondng value from the rndX table below
+;
 randomX
         CALL random1
         AND %00001111
@@ -106,19 +118,23 @@ randomX
         LD L, D
         RET
 
+;
+; wait for [space] key to be pressed
+; return when it is released
+;
 keySpace
         PUSH BC
         PUSH AF
 .keySpace1
-        LD BC, $7ffe                        ; port for keys: space, sym, mnb
-        IN A, (C)                           ; read port
-        BIT 0, A                            ; test for space key
-        JR Z, .keySpace2                    ; jump if pressed
-        JR .keySpace1                       ; otherwise loop
+        LD BC, $7ffe                                ; port for keys: space, sym, mnb
+        IN A, (C)                                   ; read port
+        BIT 0, A                                    ; test for space key
+        JR Z, .keySpace2                            ; jump if pressed
+        JR .keySpace1                               ; otherwise loop
 .keySpace2
-        IN A, (C)
-        BIT 0, A
-        JR Z, .keySpace2
+        IN A, (C)                                   ; read port again
+        BIT 0, A                                    ; test for space key again
+        JR Z, .keySpace2                            ; loop back if still pressed
         POP AF
         POP BC
         RET

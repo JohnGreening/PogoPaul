@@ -100,18 +100,17 @@ scroll
         LD IY, tScroll                      ; reset to start
         LD L, textLines                     ; and reset lines
         RET
-
+;
+; restart game processing, i.e. on life lost
+;
 restartGame
-; life lost, so restart
         CALL killSprites                    ; remove all sprites from screen
         LD IX, balloonSpr                   ; point to balloon data
 
-; here we turn all skulls back into balloons
 .restartGame1
         LD A, (IX +strucBalloon.pattern)    ; get balloon pattern
         CP 255                              ; are we at the end
-        JR Z, commonInit                    ; branch if so
-
+        JR Z, .restartEnd                   ; branch if so
 
         CP Sballoon                         ; is pattern a balloon? (unpopped)
         CALL Z, .resetPopDelay              ; call if so
@@ -121,7 +120,7 @@ restartGame
 
         CP Stoxic                           ; is pattern a toxic drop?
         CALL Z, .resetToxic                 ; call if so
-        
+
 ;        JR NZ, .restartGame2                 ; branch over if not
 
 ;        LD A, Sballoon                      ; change skull back to balloon
@@ -173,8 +172,7 @@ restartGame
         POP AF
         RET
 
-commonInit
-; these need doing on life lost or new game
+.restartEnd
         CALL ULAoff
         CALL paulInit
         LD A, (LEVEL)
