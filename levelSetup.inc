@@ -107,32 +107,71 @@ restartGame
         LD IX, balloonSpr                   ; point to balloon data
 
 ; here we turn all skulls back into balloons
-restartGame1
+.restartGame1
         LD A, (IX +strucBalloon.pattern)    ; get balloon pattern
         CP 255                              ; are we at the end
         JR Z, commonInit                    ; branch if so
 
-        CP Sskull                           ; is pattern a skull
-        JR NZ, restartGame2                 ; branch over if not
 
+        CP Sballoon                         ; is pattern a balloon? (unpopped)
+        CALL Z, .resetPopDelay              ; call if so
+
+        CP Sskull                           ; is pattern a skull?
+        CALL Z, .resetToBalloon             ; call if so
+
+        CP Stoxic                           ; is pattern a toxic drop?
+        CALL Z, .resetToxic                 ; call if so
+        
+;        JR NZ, .restartGame2                 ; branch over if not
+
+;        LD A, Sballoon                      ; change skull back to balloon
+;        LD (IX +strucBalloon.pattern), A    ; set pattern
+;        LD HL, 0                            ;
+;        LD (IX +strucBalloon.lowX), L       ; set X coord as lhs
+;        LD (IX +strucBalloon.highX), H      ;
+;.restartGame2
+;        LD A, (IX +strucBalloon.index)      ; set pop delay
+;        LD C, A
+;        LD A, 255
+;        LD (IX +strucBalloon.popDelayL), A
+;        LD A, C
+;        ADD 2
+;        SLA A
+;        LD (IX +strucBalloon.popDelayH), A
+
+        LD DE, strucBalloon
+        ADD IX, DE
+        JR .restartGame1
+
+.resetToBalloon
+        PUSH AF
         LD A, Sballoon                      ; change skull back to balloon
         LD (IX +strucBalloon.pattern), A    ; set pattern
         LD HL, 0                            ;
         LD (IX +strucBalloon.lowX), L       ; set X coord as lhs
         LD (IX +strucBalloon.highX), H      ;
-restartGame2
-        LD A, (IX +strucBalloon.index)      ; set pop delay
-        LD C, A
-        LD A, 255
-        LD (IX +strucBalloon.popDelayL), A
-        LD A, C
-        ADD 2
-        SLA A
-        LD (IX +strucBalloon.popDelayH), A
+        POP AF
 
-        LD DE, strucBalloon
-        ADD IX, DE
-        JR restartGame1
+.resetPopDelay
+        PUSH AF
+        LD A, (IX +strucBalloon.index)      ; get sprite index
+        LD C, A                             ; save in C
+        LD A, 255                           ; default pop delay (low byte)
+        LD (IX +strucBalloon.popDelayL), A  ; set it
+        LD A, C                             ; get sprite index
+        ADD 2                               ; +2
+        SLA A                               ; *2
+        LD (IX +strucBalloon.popDelayH), A  ; set pop delay (high byte)
+        POP AF
+        RET
+
+.resetToxic
+        PUSH AF
+        LD A, (IX +strucBalloon.index)
+        LD C, A
+        CALL createToxic
+        POP AF
+        RET
 
 commonInit
 ; these need doing on life lost or new game
@@ -660,13 +699,13 @@ createToxic
         LD A, (HL)
         LD (IX +strucBalloon.highX), A
 
-        LD A, 0
-        LD (IX +strucBalloon.popDelayH), A
-        CALL random
-        LD (IX +strucBalloon.popDelayL), A
-        
-        LD A, Stoxic
-        LD (IX +strucBalloon.pattern), A
+        LD A, 0                             ; set "pop" delay for toxic drop, high byte not used
+        LD (IX +strucBalloon.popDelayH), A  ; set high byte
+        CALL random                         ; get a random number 0-255
+        LD (IX +strucBalloon.popDelayL), A  ; set the low byte
+
+        LD A, Stoxic                        ; toxic drop sprite pattern
+        LD (IX +strucBalloon.pattern), A    ; set it
 
 
         RET
