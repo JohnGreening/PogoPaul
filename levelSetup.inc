@@ -660,7 +660,11 @@ createToxic
         LD A, (HL)
         LD (IX +strucBalloon.highX), A
 
-
+        LD A, 0
+        LD (IX +strucBalloon.popDelayH), A
+        CALL random
+        LD (IX +strucBalloon.popDelayL), A
+        
         LD A, Stoxic
         LD (IX +strucBalloon.pattern), A
 

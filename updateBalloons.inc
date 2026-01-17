@@ -219,11 +219,11 @@ skull1
         JR skullY
 skullX
         LD HL, (spriteX)                    ; get Paul's X coord
-        LD E, (IX +strucBalloon.lowX)           ; get Skulls X coord
+        LD E, (IX +strucBalloon.lowX)       ; get Skulls X coord
         LD D, (IX +strucBalloon.highX)
         SBC HL, DE                          ; subtract Skull X from Paul's X
         JR C, SkullLeft                     ; Skull was greater, so move Left
-        JR SkullRight                       ; otherwise move Left
+        JR SkullRight                       ; otherwise move right
 SkullLeft
         DEC DE
         LD (IX +strucBalloon.lowX), E
@@ -250,8 +250,30 @@ SkullDown
         LD (IX +strucBalloon.lowY), E
         JR balloonEnd
 
+; 
+; handle the toxic drop movement
 toxic1
-        JP balloonEnd
+        LD A, (IX +strucBalloon.popDelayL)          ; get the "pop" delay (low byte only used here)
+        OR A                                        ; test for 0 (is drop falling?)
+        JR Z, .dropToxic                            ; branch if it is falling
+        DEC A                                       ; decrease count
+        LD (IX +strucBalloon.popDelayL), A          ; save new count
+        JP balloonEnd                               ; display toxic drop
+
+.dropToxic
+        LD A, (IX +strucBalloon.lowY)               ; get current Y co-ord
+        CP maxY                                     ; are we at max?
+        JR NC, .resetToxic                          ; branch if we are
+        INC A                                       ; add 1 to Y co-ord
+        LD (IX +strucBalloon.lowY), A               ; save new co-ord
+        JP balloonEnd                               ; display toxic drop
+
+.resetToxic
+        LD A, (IX +strucBalloon.index)              ; get the toxic drop sprite index
+        LD C, A                                     ; reset routine needs this in C
+        CALL createToxic                            ; reset toxic drop to default parameters
+        JP balloonEnd                               ; display toxic drop
+
 
 itemFalling
 ; this is where Paul has popped a balloon and the item

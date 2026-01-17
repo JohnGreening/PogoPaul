@@ -44,10 +44,13 @@ keyUp
 showPaul0
         LD IX, manSprite                    ; point to Paul data
         LD A, (riseCnt)                     ; determine vertical direction, >0 is rising
+        OR A
+        JR Z, paulFalling
+
         DEC A                               ; sub 1
-        JP M, paulFalling                   ; branch if minus, i.e. was already 0
+;        JP M, paulFalling                   ; branch if minus, i.e. was already 0
         LD (riseCnt), A                     ; otherwise store
-        JP Z, paulFalling                   ; branch if 0, falling now
+;        JP Z, paulFalling                   ; branch if 0, falling now
 
 paulRising
         DEC (IX +strucBalloon.lowY)             ; otherwise move Paul up
