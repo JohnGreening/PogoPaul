@@ -46,11 +46,12 @@ keyUp
 showPaul0
         LD IX, manSprite                            ; point to Paul data
         LD A, (riseCnt)                             ; determine vertical direction, >0 is rising
-        OR A                                        ; = 0?
-        JR Z, paulFalling                           ; branch if so, falling
+        OR A                                        ; test for 0 now
+        JR Z, paulFalling                           ; branch if already 0 - falling
+        DEC A                                       ; deduct 1
+        LD (riseCnt), A                             ; save it away
+        JR Z, paulFalling                           ; branch if falling now
 
-        DEC A                                       ; otherwise sub 1
-        LD (riseCnt), A                             ; and store
 
 paulRising
         DEC (IX +strucBalloon.lowY)                 ; and move Paul up
@@ -89,52 +90,52 @@ paulRight
 leftrightEnd
         CALL paulTileCollision
 
-;.diagnostics
-;        jp .diagnosticsEnd
-;        LD IY, tileMapData +837
-;        LD A, (hitind1)
-;        CALL DispA
-;        LD IY, tileMapData +877
-;        LD A, (hitind)
-;        CALL DispA
-;        LD IY, tileMapData +917
-;        LD A, (riseCnt)
-;        CALL DispA
-;        LD IY, tileMapData +957
-;        LD A, (IX +strucBalloon.dirH)
-;        CALL DispA
-;        LD IY, tileMapData +997
-;        LD A, (hitLind)
-;        CALL DispA
-;        LD IY, tileMapData +1037
-;        LD A, (hitRind)
-;        CALL DispA
-;
-;        LD A, (hitind1)                     
-;        ld b, a                             ; store lowest pixel line with hit
-;        ld a, (hitind)                     
-;        ld c, a                             ; store highest pixel line with hit
-;
-;
-;       ld a, b
-;       cp 22
-;       jp nc, .diagnosticsEnd              ; skip if hitind1 >= 22
-;
-;        cp c
-;        jp z, .diagnosticsEnd               ; skip if hitind1 = hitind, e.g. 6/6 etc.
-;
-;.diagnostics1
-;        ; show Paul in-situ (with collision) if hit
-;        ld a, (hitind1)
-;        AND A
-;        CALL NZ, showPaul1
-;
-;        ; wait for space if hit
-;        LD A, (hitind1)
-;        AND A
-;        CALL NZ, keySpace
-;
-;.diagnosticsEnd
+.diagnostics
+        jp .diagnosticsEnd
+        LD IY, tileMapData +837
+        LD A, (hitind1)
+        CALL DispA
+        LD IY, tileMapData +877
+        LD A, (hitind)
+        CALL DispA
+        LD IY, tileMapData +917
+        LD A, (riseCnt)
+        CALL DispA
+        LD IY, tileMapData +957
+        LD A, (IX +strucBalloon.dirH)
+        CALL DispA
+        LD IY, tileMapData +997
+        LD A, (hitLind)
+        CALL DispA
+        LD IY, tileMapData +1037
+        LD A, (hitRind)
+        CALL DispA
+
+        LD A, (hitind1)                     
+        ld b, a                             ; store lowest pixel line with hit
+        ld a, (hitind)                     
+        ld c, a                             ; store highest pixel line with hit
+
+
+       ld a, b
+       cp 22
+       jp nc, .diagnosticsEnd              ; skip if hitind1 >= 22
+ 
+        cp c
+        jp z, .diagnosticsEnd               ; skip if hitind1 = hitind, e.g. 6/6 etc.
+
+.diagnostics1
+        ; show Paul in-situ (with collision) if hit
+        ld a, (hitind1)
+        AND A
+        CALL NZ, showPaul1
+
+        ; wait for space if hit
+        LD A, (hitind1)
+        AND A
+        CALL NZ, keySpace
+
+.diagnosticsEnd
         LD A, (hitind)                              ; get collision occured indicator
         AND A                                       ; is it non 0
         JP Z, paulFinish                            ; branch over if 0

@@ -16,7 +16,7 @@ newGame
         LD A, 15
         LD (volume), A
 
-        LD A, splashLevel
+        LD A, 0
         CALL createLevel
         CALL setupBalloonData
 
@@ -60,9 +60,8 @@ waitSpace1
 
         LD A, 12
         LD (volume), A
-        LD A, 2 - 1                         ; starting level
+        LD A, 0                             ; starting level, set to 1 minus level needed since we immediately add 1
         LD (LEVEL), A
-        ;JP commonInit
         JP levelUp
 
 doScroll
@@ -157,9 +156,10 @@ restartGame
         LD C, A                             ; save in C
         LD A, 255                           ; default pop delay (low byte)
         LD (IX +strucBalloon.popDelayL), A  ; set it
-        LD A, C                             ; get sprite index
-        ADD 2                               ; +2
-        SLA A                               ; *2
+        CALL calcPopDelay
+;        LD A, C                             ; get sprite index
+;        ADD 2                               ; +2
+;        SLA A                               ; *2
         LD (IX +strucBalloon.popDelayH), A  ; set pop delay (high byte)
         POP AF
         RET
@@ -230,9 +230,9 @@ showLevel
         displayText tLevel1
         displayText tLevel2
         LD A, (LEVEL)
-        INC A
+        ;INC A
         LD IY, iyLevel                      ; show the actual level number
-        CALL DispA1
+        CALL DispA2
         CALL keySpace                       ; wait for space bar
 
         ; put the screen back to how it was
@@ -302,144 +302,141 @@ createLevel
         CALL createTileMap
         RET
 
-;roomData defs strucLevelData * (splashLevel +1)
 ;
 ; the level or "room" data
 ;
 level0
-        DW page000                          ; address of screen data
-        DB 10                               ; level balloon count
-        DB 5                                ; level max on screen
-        DB %00000000                        ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
-        DW 144                              ; Paul's starting X
-        DW 216                              ; Paul's starting Y
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
+        DW page009                                  ; address of screen data (starting spash screen)
+        DB 10                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000001                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)            
+        DW 72, 64                                   ; Paul's starting x, y coords
+        DB 0                                        ; toxic drop count
+        DW 0, 0                                     ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
 
-        DW page001                           ; level 1
-        DB 11
-        DB 5
-        DB %00000000
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
+        DW page000                                  ; address of screen data (Level 1)
+        DB 10                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 0                                        ; toxic drop count
+        DW 0, 0                                     ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page001                                  ; address of screen data (Level 2)
+        DB 12                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 0                                        ; toxic drop count
+        DW 0, 0                                     ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page002                                  ; address of screen data (Level 3)
+        DB 14                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 0                                        ; toxic drop count
+        DW 0, 0                                     ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page000                                  ; address of screen data (Level 4)
+        DB 10                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 1                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page001                                  ; address of screen data (Level 5)
+        DB 12                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 1                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page002                                  ; address of screen data (Level 6)
+        DB 14                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 1                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 0, 0                                     ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page000                                  ; address of screen data (Level 7)
+        DB 12                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 2                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 160, 19                                  ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page001                                  ; address of screen data (Level 8)
+        DB 14                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 2                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 160, 19                                  ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page002                                  ; address of screen data (Level 9)
+        DB 16                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 2                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 160, 19                                  ; toxic 2 x, y coords
+        DW 0, 0                                     ; toxic 3 x, y coords
+
+        DW page000                                  ; address of screen data (Level 10)
+        DB 14                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 3                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 160, 19                                  ; toxic 2 x, y coords
+        DW 264, 19                                  ; toxic 3 x, y coords
+
+        DW page001                                  ; address of screen data (Level 11)
+        DB 16                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 3                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 160, 19                                  ; toxic 2 x, y coords
+        DW 264, 19                                  ; toxic 3 x, y coords
+
+        DW page002                                  ; address of screen data (Level 12)
+        DB 18                                       ; level balloon count
+        DB 5                                        ; level max on screen
+        DB %00000000                                ; feature byte (bit 0 - 1= disable keyboard for level, e.g. splash screen)
+        DW 144, 216                                 ; Paul's starting x, y coords
+        DB 3                                        ; toxic drop count
+        DW 56, 19                                   ; toxic 1 x, y coords
+        DW 160, 19                                  ; toxic 2 x, y coords
+        DW 264, 19                                  ; toxic 3 x, y coords
 
 
-; toxic1 co-ords x=56, y=19
-; toxic2 co-ords x=160  , y=19
-        DW page002                          ; level 2
-        DB 12
-        DB 5
-        DB %00000000
-        DW 144, 216
-        DB 3                               ; toxic cnt
-        DW 56                               ; toxic 1 X
-        DW 19                               ; toxic 1 Y
-        DW 160                                ; toxic 2 X
-        DW 19                              ; toxic 2 Y
-        DW 264                                ; toxic 3 X
-        DW 19                                ; Toxic 3 Y
-
-        DW page003                          ; level 3
-        DB 13
-        DB 5
-        DB %00000000
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
-
-        DW page004                           ; level 4
-        DB 14
-        DB 5
-        DB %00000000
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
-
-        DW page005                           ; level 5
-        DB 15
-        DB 5
-        DB %00000000
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
-
-        DW page006                           ; level 6
-        DB 16
-        DB 5
-        DB 0
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
-
-        DW page007                           ; level 7
-        DB 17
-        DB 5
-        DB 0
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
-
-        DW page008                           ; level 8
-        DB 18
-        DB 5
-        DB 0
-        DW 144, 216
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
-
-        DW page009                           ; level 9  instructions
-        DB 10
-        DB 5
-        DB %00000001
-        DW 72, 64
-        DB 0                                ; toxic cnt
-        DW 0                                ; toxic 1 Y
-        DW 0                                ; toxic 1 X
-        DW 0                                ; toxic 2 Y
-        DW 0                                ; toxic 2 X
-        DW 0                                ; toxic 3 Y
-        DW 0                                ; Toxic 3 X
 
 ;
 ; create tilemap from the compressed data
@@ -505,15 +502,15 @@ showTitles
 endProg
         CALL killSprites
 
-        LD A, $6b               ; ready to read tilemap control $6b
-        CALL ReadNextReg        ; do the read
-        AND %01111111           ; just run off bit 7 to disable tilemap
-        NEXTREG $6b, A          ; do the write
+        LD A, $6b                                   ; ready to read tilemap control $6b
+        CALL ReadNextReg                            ; do the read
+        AND %01111111                               ; just run off bit 7 to disable tilemap
+        NEXTREG $6b, A                              ; do the write
 
-        LD A, $15               ; ready to read sprites and layers system $15
-        CALL ReadNextReg        ; do the read
-        AND %11111110           ; just turn off bit 0 to disable sprites
-        NEXTREG $15, A          ; do the write
+        LD A, $15                                   ; ready to read sprites and layers system $15
+        CALL ReadNextReg                            ; do the read
+        AND %11111110                               ; just turn off bit 0 to disable sprites
+        NEXTREG $15, A                              ; do the write
 
         ; turn off sound from all 3 AY chips
         LD A, 255                
@@ -550,8 +547,8 @@ endProg
         RET
 
 killSprites
-        LD A, 0                             ; start at sprite 0
-        LD B, 127                           ; loop for all 127 sprites
+        LD A, 0                                     ; start at sprite 0
+        LD B, 127                                   ; loop for all 127 sprites
 KS1
         NEXTREG $34, A
         NEXTREG $35, 0
@@ -565,23 +562,23 @@ KS1
         RET
 
 setupBalloonData
-        LD IX, balloonSpr                   ; point to balloon data
-        LD C, 0                             ; initialise the sprite index
-        LD A, (toxicCnt)                    ; get count of toxic drops in this room
-        CP 0                                ; is it 0?
-        JP Z, setupBalloon                  ; branch if so
+        LD IX, balloonSpr                           ; point to balloon data
+        LD C, 0                                     ; initialise the sprite index
+        LD A, (toxicCnt)                            ; get count of toxic drops in this room
+        CP 0                                        ; is it 0?
+        JP Z, setupBalloon                          ; branch if so
 
-        LD B, A                             ; save the toxic count into B
-        LD A, (maxOnScreen)                 ; get maximum balloons allowed on screen
-        ADD B                               ; adjust for toxic count
-        LD (maxOnScreen), A                 ; and save back
+        LD B, A                                     ; save the toxic count into B
+        LD A, (maxOnScreen)                         ; get maximum balloons allowed on screen
+        ADD B                                       ; adjust for toxic count
+        LD (maxOnScreen), A                         ; and save back
 
 setUpToxic
-        CALL createToxic                    ; create the toxic drop
-        LD DE, strucBalloon                 ; get balloon structure length
-        ADD IX, DE                          ; and and hence point to next balloon
-        INC C                               ; increase sprite index
-        DJNZ setUpToxic                     ; loop if more toxic drops
+        CALL createToxic                            ; create the toxic drop
+        LD DE, strucBalloon                         ; get balloon structure length
+        ADD IX, DE                                  ; and and hence point to next balloon
+        INC C                                       ; increase sprite index
+        DJNZ setUpToxic                             ; loop if more toxic drops
 
 
 setupBalloon
@@ -603,116 +600,62 @@ setupBalloon1
         RET
 
 createBalloon
-        LD A, C                        ; get sprite index
-        LD (IX +strucBalloon.index), A     ; set in balloon data
+        LD A, C                                     ; get sprite index
+        LD (IX +strucBalloon.index), A              ; set in balloon data
 
-        CALL randomY                   ; get a random Y coord in A
-        LD (IX +strucBalloon.lowY), A      ; set in balloon data
-        LD A, 0                        ; set the high Y coord byte to 0
-        LD (IX +strucBalloon.highY), A     ; set in balloon data
+        CALL randomY                                ; get a random Y coord in A
+        LD (IX +strucBalloon.lowY), A               ; set in balloon data
+        LD A, 0                                     ; set the high Y coord byte to 0
+        LD (IX +strucBalloon.highY), A              ; set in balloon data
 
-        CALL random                    ; get a random number in A
-        AND %00011111                  ; limit to 0-31
-        LD (IX +strucBalloon.swoop), A     ; set in balloon data
+        CALL random                                 ; get a random number in A
+        AND %00011111                               ; limit to 0-31
+        LD (IX +strucBalloon.swoop), A              ; set in balloon data
 
-             ; this determines how long it will take
-             ; before the balloon auto pops
-             ; and turns into a skull
-        LD A, 255                      ; initialise low byte pop delay
-        LD (IX +strucBalloon.popDelayL), A ; set it
-        LD A, C                        ; initialise high byte pop delay
-        ADD 2                          ; use balloon index + 1
-        SLA A
-        LD (IX +strucBalloon.popDelayH), A ; set it
+        ; this determines how long it will take
+        ; before the balloon auto pops
+        ; and turns into a skull
+        LD A, 255                                   ; initialise low byte pop delay
+        LD (IX +strucBalloon.popDelayL), A          ; set it
+        CALL calcPopDelay
+;        LD A, C                                     ; initialise high byte pop delay
+;        ADD 2                                       ; use balloon index +2
+;        SLA A                                       ; *2
+        LD (IX +strucBalloon.popDelayH), A          ; set it
 
         LD A, 0
         LD (IX +strucBalloon.landValue), A
 
         LD A, (maxOnScreen)
-;             CP B
-;             JR NC, offScreen
          CP C
          JR C, .offScreen
 
 .onScreen
-        LD A, Sballoon                 ; on screen, so pattern is balloon
+        LD A, Sballoon                              ; on screen, so pattern is balloon
         LD (IX +strucBalloon.pattern), A
 
-        CALL randomX                   ; get a random X coord in HL
-        LD (IX +strucBalloon.lowX), L      ; set in balloon data
-        LD (IX +strucBalloon.highX), H     ; set in balloon data
+        CALL randomX                                ; get a random X coord in HL
+        LD (IX +strucBalloon.lowX), L               ; set in balloon data
+        LD (IX +strucBalloon.highX), H              ; set in balloon data
         JR setupEnd
 
 .offScreen
-        LD A, Sblank                    ; off screen, so pattern is blank
+        LD A, Sblank                                ; off screen, so pattern is blank
         LD (IX +strucBalloon.pattern), A
-        LD HL, 0                       ; set X as 0
-        LD (IX +strucBalloon.lowX), L      ; set in balloon data
-        LD (IX +strucBalloon.highX), H     ; set in balloon data
+        LD HL, 0                                    ; set X as 0
+        LD (IX +strucBalloon.lowX), L               ; set in balloon data
+        LD (IX +strucBalloon.highX), H              ; set in balloon data
         JR setupEnd
 
-setupEnd
-; get a random number 0-15
-; item will be assigned as follows
-; 07 blank      38%  0 -  5 & 15
-; 24 points     24%  6 -  9
-; 16 apple      24% 10 - 13
-; 12 heart       7%      14
-        LD A, B                             ; get the count of balloons
-        DEC A                               ; are we on the last one
-        JR Z, assignKey                     ; branch if so
-assignItem1
-        CALL random1                        ; get a random number
-        AND %00001111                       ; mask off so its 0-15
-        LD HL, items                        ; point to items list
-        ADD HL, A                           ; index with random number
-        LD A, (HL)                          ; get item
-        LD (IX +strucBalloon.newSprite), A  ; set what this balloon may spawn into
-
+;
+; this is called when creating the balloons for the level and when re-setting the level on a death
+;
+calcPopDelay
+; C mist hold the sprite index
+        LD A, C
+        ADD 2
+ ;       SLA A
         RET
-assignKey
-        LD A, (keyCnt)                      ; get the count of "held" keys
-        AND A                               ; test for 0, not held
-        JR NZ, assignItem1                  ; if we are already holding the key, select another item
-        LD A, Skey                          ; set item to be the key
-        LD (IX +strucBalloon.newSprite), A  ; set what this balloon may spawn into
-
-        RET
-
-createToxic
-        LD A, C                             ; get sprite index
-        LD (IX +strucBalloon.index), A      ; set in balloon data
-
-        LD HL, toxic1Y                      ; point to the starting coords 4 bytes per toxic drop
-        ADD A, A                            ; multiply index by 2
-        ADD A, A                            ; multiply index by 4
-        ADD HL, A                           ; add to base
-        LD A, (HL)
-        LD (IX +strucBalloon.lowY), A
-        INC HL
-        LD A, (HL)
-        LD (IX +strucBalloon.highY), A
-        INC HL
-        LD A, (HL)
-        LD (IX +strucBalloon.lowX), A
-        INC HL
-        LD A, (HL)
-        LD (IX +strucBalloon.highX), A
-
-        LD A, 0                             ; set "pop" delay for toxic drop, high byte not used
-        LD (IX +strucBalloon.popDelayH), A  ; set high byte
-        CALL random                         ; get a random number 0-255
-        LD (IX +strucBalloon.popDelayL), A  ; set the low byte
-
-        LD A, Stoxic                        ; toxic drop sprite pattern
-        LD (IX +strucBalloon.pattern), A    ; set it
-
-
-        RET
-
-
-             
-
 
 items
         DB Sblank                           ;  0
@@ -726,9 +669,67 @@ items
         DB Spoints                          ;  8
         DB Spoints                          ;  9
         DB Sapple                           ; 10
-        DB Sapple                           ; 11
-        DB Sapple                           ; 12
+        DB Spoints                          ; 11
+        DB Spoints                          ; 12
+;        DB Sapple                           ; 11
+;        DB Sapple                           ; 12
         DB Sapple                           ; 13
         DB Sheart                           ; 14
         DB Sblank                           ; 15
 
+
+setupEnd
+; get a random number 0-15
+; item will be assigned as above
+        LD A, B                                     ; get the count of balloons
+        DEC A                                       ; are we on the last one
+        JR Z, assignKey                             ; branch if so
+assignItem1
+        CALL random1                                ; get a random number
+        AND %00001111                               ; mask off so its 0-15
+        LD HL, items                                ; point to items list
+        ADD HL, A                                   ; index with random number
+        LD A, (HL)                                  ; get item
+        LD (IX +strucBalloon.newSprite), A          ; set what this balloon may spawn into
+
+        RET
+assignKey
+        LD A, (keyCnt)                              ; get the count of "held" keys
+        AND A                                       ; test for 0, not held
+        JR NZ, assignItem1                          ; if we are already holding the key, select another item
+        LD A, Skey                                  ; set item to be the key
+        LD (IX +strucBalloon.newSprite), A          ; set what this balloon may spawn into
+
+        RET
+
+createToxic
+        LD A, C                                     ; get sprite index
+        LD (IX +strucBalloon.index), A              ; set in balloon data
+
+        LD HL, toxic1Y                              ; point to the starting coords 4 bytes per toxic drop
+        ADD A, A                                    ; multiply index by 2
+        ADD A, A                                    ; multiply index by 4
+        ADD HL, A                                   ; add to base
+        LD A, (HL)
+        LD (IX +strucBalloon.lowY), A
+        INC HL
+        LD A, (HL)
+        LD (IX +strucBalloon.highY), A
+        INC HL
+        LD A, (HL)
+        LD (IX +strucBalloon.lowX), A
+        INC HL
+        LD A, (HL)
+        LD (IX +strucBalloon.highX), A
+
+        LD A, 0                                     ; set "pop" delay for toxic drop, high byte not used
+        LD (IX +strucBalloon.popDelayH), A          ; set high byte
+        CALL random                                 ; get a random number 0-255
+        AND 15                                      ; drop really fast !
+        LD (IX +strucBalloon.popDelayL), A          ; set the low byte
+
+        LD A, Stoxic                                ; toxic drop sprite pattern
+        LD (IX +strucBalloon.pattern), A            ; set it
+
+
+        RET
