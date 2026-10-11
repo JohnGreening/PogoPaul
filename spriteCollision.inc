@@ -3,14 +3,14 @@
 ; we only check to see what Paul collides with
 ;
 chkSpriteCollision
-; get Paul's 1bit bitmap depending on his direction
-        LD A, (manPat)                              ; get current sprite pattern
-        LD HL, paulbmpL                             ; default 1 bit bitmap to Paul facing left
+; get Paul's 1-bit bitmap depending on his direction
+        LD A, (manPat)                              ; get current sprite pattern to determine which way Paul is facing
+        LD HL, paulbmpL                             ; default 1-bit bitmap to Paul facing left
         AND A                                       ; test current sprite pattern
         JR NZ, storePaulbmp                         ; branch if facing left 
-        LD HL, paulbmpR                             ; otherwise set 1bit bitmap to Paul facing right
+        LD HL, paulbmpR                             ; otherwise set 1-bit bitmap to Paul facing right
 storePaulbmp
-        LD (manBitmap), HL                          ; store correct 1 bit bitmap
+        LD (manBitmap), HL                          ; store correct 1-bit bitmap
 
         LD IX, balloonSpr                           ; point to start of the "balloon" data
 
@@ -185,8 +185,11 @@ noAction
 ; Paul and the "balloon" sprite being tested
 ;---------------------------------------------------------
 CS1
-        LD (spriteBitmap), BC                       ; save off location of 1 bit bitmap
+        LD (spriteBitmap), BC                       ; save off location of 1-bit bitmap
         LD (collisionInx), IX                       ; and the balloon in question
+
+        LD HL, (manBitmap)
+        LD (manBitmapW), HL
 doYDiff
         LD A, (spriteY)                             ; get Paul's Y coord
         LD B, (IX +strucBalloon.lowY)               ; get Balloon Y coord
@@ -225,12 +228,12 @@ spriteBelowPaul
         ; we only want to test for a hit on the overlap pixels
         ; the bitmap is 3 bytes per pixel line
         ; C is calculated as the number of lines to test
-        LD HL, (manBitmap)
+        LD HL, (manBitmapW)
         LD D, A
         LD E, 3
         MUL D, E
         ADD HL, DE
-        LD (manBitmap), HL
+        LD (manBitmapW), HL
         LD C, 16
         CP 16
         JR NC, doXDiff
@@ -279,7 +282,7 @@ balloonRightOfPaul
         ; B is holding the X delta
         ; C is holding pixel lines to test
         PUSH IX
-        LD IX, (manBitmap)
+        LD IX, (manBitmapW)
         LD IY, (spriteBitmap)
 BROP
         LD H, (IX +0)
@@ -307,7 +310,7 @@ balloonLeftOfPaul
         ; B is holding the X delta
         ; C is holding pixel lines to test
         PUSH IX
-        LD IX, (manBitmap)
+        LD IX, (manBitmapW)
         LD IY, (spriteBitmap)
 BLOP
         LD H, (IX +0)
@@ -336,6 +339,7 @@ myhit
         RET
 
 manBitmap    DW 00                          ; location of our man bitmap
+manBitmapW   DW 00                          ; working copy of man bitmap
 spriteBitmap DW 00                          ; location of sprite bitmap being checked
 collisionInx DW $00
 
