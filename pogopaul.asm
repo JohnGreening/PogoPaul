@@ -74,15 +74,15 @@ MainLoop:
 ; ----------------------------
 CheckPause:
         LD BC, $bffe                ; key group with H
-        IN A, (C)
+        IN A, (C)                   ; read port
         AND %00010000               ; bit 4 = H
-        JR NZ, CheckExit
+        JR NZ, CheckExit            ; 0 is pressed, so branch if not 0
 
 PauseLoop:
-        HALT
-        IN A, (C)
-        AND %00010000
-        JR NZ, PauseLoop            ; wait until H pressed again
+        HALT                        ; wait for interrupt, not sure why, why not !
+        IN A, (C)                   ; read port again
+        AND %00010000               ; bit 4 = H
+        JR NZ, PauseLoop            ; 0 is pressed, so wait until H pressed again
 
 ; ----------------------------
 ; Exit Handling (X key)

@@ -190,7 +190,7 @@ levelUp
 
         LD A, (LEVEL)
         INC A
-        CP maxLevel
+        CP maxLevel +1
         jr c, .lvOK
         LD A, 1
 .lvOK:

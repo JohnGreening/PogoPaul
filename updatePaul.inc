@@ -44,21 +44,52 @@ keyUp
         CALL showPower
 
 showPaul0
+; --------------------------------------------------------------------------
+; vertical movement: 8.8 fixed point velocity (velY, +ve = up) with gravity.
+; at most 2 px per tick, applied as two 1 px sub-steps so every pixel is
+; collision checked. The first pixel is moved here, a second (if any) is
+; left in pendStep and done at paulFinish after this pixel was checked.
+; --------------------------------------------------------------------------
         LD IX, manSprite                            ; point to Paul data
-        LD A, (riseCnt)                             ; determine vertical direction, >0 is rising
-        OR A                                        ; test for 0 now
-        JR Z, paulFalling                           ; branch if already 0 - falling
-        DEC A                                       ; deduct 1
-        LD (riseCnt), A                             ; save it away
-        JR Z, paulFalling                           ; branch if falling now
-
-
-paulRising
-        DEC (IX +strucBalloon.lowY)                 ; and move Paul up
-        JR doLeftRight                              ; end of rise processing
-
-paulFalling
-        INC (IX +strucBalloon.lowY)                 ; move Paul down
+        LD HL, (velY)                               ; current vertical velocity
+        LD DE, -gravity                             ; apply gravity
+        ADD HL, DE
+        BIT 7, H                                    ; falling?
+        JR Z, .velOk                                ; no, rising so no clamp
+        PUSH HL
+        LD DE, termVel
+        ADD HL, DE                                  ; carry set if velY >= -termVel
+        POP HL
+        JR C, .velOk
+        LD HL, -termVel                             ; clamp to terminal fall speed
+.velOk
+        LD (velY), HL
+        LD A, (fracY)                               ; add the sub-pixel remainder
+        ADD HL, A
+        LD A, L
+        LD (fracY), A                               ; new remainder
+        LD A, H                                     ; whole pixels to move, signed -2..+2 (+ve = up)
+        OR A
+        JR Z, .noMove
+        BIT 7, A
+        JR NZ, .moveDown
+        DEC A                                       ; 1 -> 0, 2 -> 1 pending up
+        LD (pendStep), A
+        DEC (IX +strucBalloon.lowY)                 ; move Paul up 1 px
+        LD A, -1
+        JR .moved
+.moveDown
+        INC A                                       ; -1 -> 0, -2 -> -1 pending down
+        LD (pendStep), A
+        INC (IX +strucBalloon.lowY)                 ; move Paul down 1 px
+        LD A, 1
+.moved
+        LD (lastStep), A                            ; remember this sub-step for undo
+        JR doLeftRight
+.noMove
+        XOR A
+        LD (pendStep), A
+        LD (lastStep), A
 
 doLeftRight
 ; so here we decide if Paul is allowed to move left/right
@@ -173,21 +204,27 @@ tileCollision1
 
         CALL reverseX1                              ; reverse previous left/right
 
-        ld a, (riseCnt)                             ; obtain riseCnt, i.e. were we jumping or falling
-        and a                                       ; test for 0 (falling)
-        jr z, .hr1                                  ; branch if falling
-        jr .hr2                                     ; otherwise do the jumping branch
-
+        LD A, (lastStep)                            ; undo this sub-step's vertical pixel
+        OR A
+        JR Z, .hr3                                  ; no vertical move this sub-step
+        BIT 7, A
+        JR NZ, .hr2
 .hr1
-        dec (ix +strucBalloon.lowY)                 ; reverse falling, move Paul up
-        jr .hr3                                     ; done
+        DEC (IX +strucBalloon.lowY)                 ; was moving down, move back up
+        JR .hr3
 .hr2
-        INC (IX +strucBalloon.lowY)                 ; reverse jumping, move Paul down
-        jr .hr3                                     ; done
-
+        INC (IX +strucBalloon.lowY)                 ; was moving up, move back down
 .hr3
-        XOR A                                       ; Paul is now falling
-        LD (riseCnt), A                             ; set it
+        XOR A
+        LD (pendStep), A                            ; drop any second sub-step
+        LD A, (velY+1)
+        BIT 7, A
+        JR NZ, .keepFall                            ; falling: keep speed (no wall stick)
+        LD HL, 0
+        LD (velY), HL                               ; rising: head bump stops the rise
+        XOR A
+        LD (fracY), A
+.keepFall
 
         LD A, (hitind)                              ; get highest pixel line of collision
         ld b, a                                     ; save it
@@ -218,10 +255,30 @@ bounce
 
         DEC (IX +strucBalloon.lowY)                 ; move Paul up
 
-        CALL setRiseCnt                             ; set riseCnt and lrDelay
+        CALL setRiseCnt                             ; set launch velocity and lrDelay
         CALL keyProcess                             ; it's a bounce, so allow Paul to change horizontal direction
+        XOR A
+        LD (pendStep), A                            ; bounce cancels any second sub-step
 
 paulFinish
+        LD A, (pendStep)                            ; second pixel still to move this tick?
+        OR A
+        JR Z, paulFinish1
+        LD B, A
+        XOR A
+        LD (pendStep), A
+        BIT 7, B
+        JR NZ, .pendDown
+        DEC (IX +strucBalloon.lowY)                 ; second pixel up
+        LD A, -1
+        JR .pendGo
+.pendDown
+        INC (IX +strucBalloon.lowY)                 ; second pixel down
+        LD A, 1
+.pendGo
+        LD (lastStep), A
+        JP leftrightEnd                             ; collision check this pixel too
+paulFinish1
         CALL showPaul1                              ; show Paul sprite
 
         CALL chkSpriteCollision                     ; check balloon collision
@@ -287,13 +344,22 @@ reverseX1
         RET
 
 setRiseCnt
-        LD A, (strengthInd)                         ; get index into bounce table
-        LD HL, bounceTable                          ; point to bounce table
-        ADD HL, A                                   ; add offset for strength
-        LD A, (HL)                                  ; get the rise count
-        LD (riseCnt), A                             ; and store
-        ADD HL, 16                                  ; point to left/right delay
-        LD A, (HL)                                  ; get the left/right delay
-        LD (leftRightCount), A                      ; and store it
+; on a bounce (and paulInit): launch velocity from launchTable, L/R delay from bounceTable row 2
+        LD A, (strengthInd)
+        ADD A, A
+        LD HL, launchTable
+        ADD HL, A
+        LD E, (HL)
+        INC HL
+        LD D, (HL)
+        LD (velY), DE
+        XOR A
+        LD (fracY), A
+        LD (pendStep), A
+        LD A, (strengthInd)
+        LD HL, bounceTable +16                      ; left/right delay row
+        ADD HL, A
+        LD A, (HL)
+        LD (leftRightCount), A
         LD (leftRightDelay), A
         RET
