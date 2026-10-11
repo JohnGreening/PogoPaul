@@ -234,10 +234,10 @@ spriteBelowPaul
         MUL D, E
         ADD HL, DE
         LD (manBitmapW), HL
-        LD C, 16
+        LD C, 16                                    ; balloon fully inside Paul's 32 rows?
         CP 16
-        JR NC, doXDiff
-        LD C, A
+        JR C, doXDiff                               ; d < 16: test all 16 balloon rows
+        LD C, A                                     ; d >= 16: only 32 - d rows overlap
         LD A, 32
         SUB C
         LD C, A
@@ -270,6 +270,8 @@ doXDiff
         RET NZ
 
         LD A, L
+        OR A                                        ; delta = -256 (balloon 256 px right): no overlap
+        RET Z                                       ; (carry clear = no hit)
         NEG
         CP 16
         RET NC
