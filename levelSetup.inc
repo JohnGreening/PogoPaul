@@ -39,7 +39,7 @@ newGame
         CALL showSP1
 
         CALL paulInit
-        CALL showPaul1
+        CALL drawPaul
 
         LD IY, tScroll                      ; point to scrolling instructions
         LD H, 1                             ; first scroll delay
@@ -211,7 +211,7 @@ paulInit
         LD (IX +strucBalloon.dirH), A       ; set it
         LD A, 1                             ; pogo power at 1
         LD (strengthInd), A                 ; set it
-        CALL setRiseCnt                     ; set riseCnt according to pogo strength
+        CALL startBounce                    ; launch speed according to pogo strength
         LD A, 15                            ; max health
         LD (health), A                      ; set it
         LD A, healthDefault                 ; health delay default

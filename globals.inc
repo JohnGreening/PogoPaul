@@ -99,14 +99,14 @@ bounceTable
                 DB   4,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
         
 ; gravity arc: 8.8 fixed point, px per tick (tick = one showPaul call, 2 per frame)
-; launchTable gives the same peak heights as bounceTable row 1 (15..83 px) with gravity 6/256
+; bounceSpeedTable gives the same peak heights as bounceTable row 1 (15..83 px) with gravity 6/256
 gravity         EQU 6                       ; 0.0234 px/tick^2
-termVel         EQU 512                     ; max fall speed 2 px/tick (sub-step limit)
-launchTable     DW 218, 269, 312, 331, 350, 367, 383, 399, 415, 429, 443, 457, 471, 483, 496, 508
-velY            DW 0                        ; vertical velocity, +ve = up
-fracY           DB 0                        ; sub-pixel remainder
-pendStep        DB 0                        ; second pixel this tick: 1 = up, -1 = down, 0 = none
-lastStep        DB 0                        ; pixel moved this sub-step: -1 up, 1 down, 0 none
+maxFallSpeed         EQU 512                     ; max fall speed 2 px/tick (sub-step limit)
+bounceSpeedTable     DW 218, 269, 312, 331, 350, 367, 383, 399, 415, 429, 443, 457, 471, 483, 496, 508
+paulSpeedY            DW 0                        ; vertical velocity, +ve = up
+subPixelY           DB 0                        ; sub-pixel remainder
+extraPixelY        DB 0                        ; 1 = a second pixel to move this tick, 0 = none
+lastMoveY        DB 0                        ; vertical direction this tick: -1 up, 1 down, 0 none
 
 skullDelay      equ 2
 
@@ -222,8 +222,6 @@ lives           DB 3
 keyCnt          DB 0
 features        DB 0
 LEVEL           DB 0
-
-riseCnt         DB 18
 
 strengthInd     DB 1
 ;

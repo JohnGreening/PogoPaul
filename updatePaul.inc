@@ -1,363 +1,321 @@
-showPaul1
-        LD IX, manSprite
-        CALL showSP
-        CALL showManRels
-;        HALT
-;        HALT
-;        HALT
-;        HALT
+;==========================================================================
+; updatePaul.inc - everything that moves and draws Paul
+;
+; showPaul is called twice per frame from MainLoop (one call = one "tick").
+; Each tick:
+;   1. handlePowerKeys  - A / Z adjust pogo power (every keyDelayInit ticks)
+;   2. updateSpeedY     - gravity on paulSpeedY, work out 0..2 pixels to move
+;   3. pixel step loop  - move ONE pixel at a time and check the tiles after
+;                         each pixel, so Paul can never pass through a tile.
+;                         The sideways step (if due) happens with the first pixel.
+;   4. onTileHit        - landed (bounce) or hit head / wall
+;   5. drawPaul, balloon collisions, health bar
+; Returns carry set if Paul has died (health = 0).
+;
+; Paul is 32 pixel rows tall (row 0 top .. row 31 bottom, head starts at row 6).
+; paulTileCollision returns:
+;   hitind1 = topmost Paul row touching a tile (0 = no hit)
+;   hitind  = bottom-most Paul row touching a tile
+;==========================================================================
+
+bounceRow       EQU 22          ; topmost hit row >= this: feet/pogo touched, bounce
+headRow         EQU 8           ; topmost hit row <  this: head bump, costs health
+headHitDamage   EQU 3           ; healthDelay is reduced by this per head bump
+
+; keyboard half-rows (active low)
+keyPortZ        EQU $fefe       ; shift z x c v
+keyBitZ         EQU 1
+keyPortA        EQU $fdfe       ; a s d f g
+keyBitA         EQU 0
+keyPortOP       EQU $dffe       ; p o i u y
+keyBitP         EQU 0
+keyBitO         EQU 1
+
+maxPower        EQU 15
+
+;--------------------------------------------------------------------------
+; showPaul - one tick of Paul. Out: carry set = Paul is dead
+;--------------------------------------------------------------------------
+showPaul
+        CALL handlePowerKeys
+        LD IX, manSprite                            ; IX = Paul's record (needed by paulTileCollision)
+        CALL updateSpeedY                           ; sets lastMoveY (direction) and extraPixelY
+
+        CALL movePaulY                              ; first pixel (if any)
+        CALL moveHorizontal                         ; sideways step (if due)
+.checkTiles
+        CALL paulTileCollision
+        LD A, (hitind)
+        AND A
+        JR NZ, .hit                                 ; touching a tile, deal with it
+        LD A, (extraPixelY)                         ; second pixel to move this tick?
+        AND A
+        JR Z, .done
+        XOR A
+        LD (extraPixelY), A
+        CALL movePaulY                              ; second pixel, then check again
+        JR .checkTiles
+.hit
+        CALL onTileHit                              ; a hit ends this tick's movement
+.done
+        CALL drawPaul
+        CALL chkSpriteCollision                     ; balloons, items, skulls
+        CALL showHealth
+        LD A, (health)
+        AND A                                       ; clears carry
+        RET NZ                                      ; still alive
+        SCF                                         ; dead
         RET
 
-showPaul
-        LD HL, keyDelay                             ; we only allow up/down to be pressed every few frames
-        DEC (HL)                                    ; -1 from up/down key delay
-        JR NZ, showPaul0                            ; branch over up/down key processing if it's not zero
+;--------------------------------------------------------------------------
+; drawPaul - show Paul's two sprites (also called from levelSetup)
+;--------------------------------------------------------------------------
+drawPaul
+        LD IX, manSprite
+        CALL showSP                                 ; top half (anchor)
+        JP showManRels                              ; bottom half (relative)
 
-        LD A, keyDelayInit                          ; reset key delay for next time
-        LD (HL), A                                  ; save it
-keyDown
-        LD BC, $fefe                                ; read keyboard up/down
-        IN A, (C)                                   ; read port
-        BIT 1, A                                    ; check "z" key
-        JR NZ, keyUp                                ; branch if not pressed
+;--------------------------------------------------------------------------
+; handlePowerKeys - Z lowers, A raises pogo power, once every keyDelayInit ticks
+;--------------------------------------------------------------------------
+handlePowerKeys
+        LD HL, keyDelay
+        DEC (HL)
+        RET NZ                                      ; not time to read the keys yet
+        LD (HL), keyDelayInit
 
-        ; get strength value and branch if already 0
-        ; otherwise store decrement and show new power
+        LD BC, keyPortZ
+        IN A, (C)
+        BIT keyBitZ, A
+        JR NZ, .checkA                              ; Z not pressed
         LD A, (strengthInd)
         SUB 1
-        JR C, keyUp
+        JR C, .checkA                               ; already 0
         LD (strengthInd), A
         CALL showPower
-keyUp
-        LD BC, $fdfe                                ; read keyboard up/down
-        IN A, (C)                                   ; read port
-        BIT 0, A                                    ; check "a" key
-        JR NZ, showPaul0                            ; branch if not pressed
-        
-        ; get strength value and branch if already 15
-        ; otherwise store increment and show new power
+.checkA
+        LD BC, keyPortA
+        IN A, (C)
+        BIT keyBitA, A
+        RET NZ                                      ; A not pressed
         LD A, (strengthInd)
-        CP 15
-        JR Z, showPaul0
+        CP maxPower
+        RET Z                                       ; already at maximum
         INC A
         LD (strengthInd), A
-        CALL showPower
+        JP showPower
 
-showPaul0
-; --------------------------------------------------------------------------
-; vertical movement: 8.8 fixed point velocity (velY, +ve = up) with gravity.
-; at most 2 px per tick, applied as two 1 px sub-steps so every pixel is
-; collision checked. The first pixel is moved here, a second (if any) is
-; left in pendStep and done at paulFinish after this pixel was checked.
-; --------------------------------------------------------------------------
-        LD IX, manSprite                            ; point to Paul data
-        LD HL, (velY)                               ; current vertical velocity
-        LD DE, -gravity                             ; apply gravity
+;--------------------------------------------------------------------------
+; updateSpeedY - apply gravity and split this tick's movement into pixels
+;   paulSpeedY: 8.8 fixed point px/tick, +ve = up, capped at maxFallSpeed down
+;   subPixelY : fraction of a pixel carried to the next tick
+; Out: lastMoveY   = -1 up, +1 down, 0 no vertical move this tick
+;      extraPixelY = 1 if a second pixel must be moved this tick, else 0
+;--------------------------------------------------------------------------
+updateSpeedY
+        LD HL, (paulSpeedY)
+        LD DE, -gravity
         ADD HL, DE
-        BIT 7, H                                    ; falling?
-        JR Z, .velOk                                ; no, rising so no clamp
+        BIT 7, H
+        JR Z, .speedDone                            ; rising, no cap needed
         PUSH HL
-        LD DE, termVel
-        ADD HL, DE                                  ; carry set if velY >= -termVel
+        LD DE, maxFallSpeed
+        ADD HL, DE                                  ; carry set if speed >= -maxFallSpeed
         POP HL
-        JR C, .velOk
-        LD HL, -termVel                             ; clamp to terminal fall speed
-.velOk
-        LD (velY), HL
-        LD A, (fracY)                               ; add the sub-pixel remainder
-        ADD HL, A
+        JR C, .speedDone
+        LD HL, -maxFallSpeed                        ; cap fall speed
+.speedDone
+        LD (paulSpeedY), HL
+        LD A, (subPixelY)
+        ADD HL, A                                   ; H = whole pixels (-2..+2), L = new fraction
         LD A, L
-        LD (fracY), A                               ; new remainder
-        LD A, H                                     ; whole pixels to move, signed -2..+2 (+ve = up)
-        OR A
-        JR Z, .noMove
-        BIT 7, A
-        JR NZ, .moveDown
-        DEC A                                       ; 1 -> 0, 2 -> 1 pending up
-        LD (pendStep), A
-        DEC (IX +strucBalloon.lowY)                 ; move Paul up 1 px
-        LD A, -1
-        JR .moved
-.moveDown
-        INC A                                       ; -1 -> 0, -2 -> -1 pending down
-        LD (pendStep), A
-        INC (IX +strucBalloon.lowY)                 ; move Paul down 1 px
-        LD A, 1
-.moved
-        LD (lastStep), A                            ; remember this sub-step for undo
-        JR doLeftRight
-.noMove
-        XOR A
-        LD (pendStep), A
-        LD (lastStep), A
+        LD (subPixelY), A
 
-doLeftRight
-; so here we decide if Paul is allowed to move left/right
-; it is restricted so that movement resembles a sin wave
-; so only when the counter is 0, movement is allowed
+        LD A, H
+        LD B, 0                                     ; B = direction, C = extra pixel
+        LD C, B
+        AND A
+        JR Z, .store                                ; no vertical move
+        BIT 7, A
+        JR NZ, .down
+        DEC A                                       ; up: +1 -> 0 extra, +2 -> 1 extra
+        LD C, A
+        DEC B                                       ; B = -1 (up)
+        JR .store
+.down
+        INC A                                       ; down: -1 -> 0, -2 -> -1
+        AND 1                                       ; extra = 0 or 1
+        LD C, A
+        INC B                                       ; B = +1 (down)
+.store
+        LD A, B
+        LD (lastMoveY), A
+        LD A, C
+        LD (extraPixelY), A
+        RET
+
+;--------------------------------------------------------------------------
+; movePaulY - move Paul one pixel in direction lastMoveY (-1 / 0 / +1)
+;--------------------------------------------------------------------------
+movePaulY
+        LD A, (lastMoveY)
+        ADD A, (IX +strucBalloon.lowY)
+        LD (IX +strucBalloon.lowY), A
+        RET
+
+;--------------------------------------------------------------------------
+; moveHorizontal - one pixel sideways every leftRightDelay ticks
+; in the direction chosen at the last bounce (spriteDirH)
+;--------------------------------------------------------------------------
+moveHorizontal
         LD HL, leftRightCount
         DEC (HL)
-        JP NZ, leftrightEnd                         ; if not theres no horizontal mvmt
-
-        LD A, (leftRightDelay)                      ; set L/R countdown default
+        RET NZ                                      ; not due yet
+        LD A, (leftRightDelay)
         LD (HL), A
+        LD A, (spriteDirH)
+        CP left
+        JR Z, movePaulLeft
+        CP right
+        JR Z, movePaulRight
+        RET                                         ; nothing: straight up and down
 
-        LD A, (spriteDirH)                          ; get the horizontal movement
-        AND A                                       ; is it 0?
-        JR Z, leftrightEnd                          ; 0 = up/down only
-        DEC A                                       ; was it 1?
-        JR Z, paulLeft                              ; 1 = left
-        DEC A                                       ; was it 2?
-        JR Z, paulRight                             ; 2 = right
-        JR leftrightEnd
-paulLeft
-        CALL movePaulLeft
-        JR leftrightEnd
+movePaulRight
+        LD HL, (spriteX)
+        INC HL
+        LD (spriteX), HL
+        RET
 
-paulRight
-        CALL movePaulRight
-        JR leftrightEnd
+movePaulLeft
+        LD HL, (spriteX)
+        DEC HL
+        LD (spriteX), HL
+        RET
 
-leftrightEnd
-        CALL paulTileCollision
-
-.diagnostics
-        jp .diagnosticsEnd
-        LD IY, tileMapData +837
+;--------------------------------------------------------------------------
+; onTileHit - decide what kind of tile contact this was
+;--------------------------------------------------------------------------
+onTileHit
         LD A, (hitind1)
-        CALL DispA
-        LD IY, tileMapData +877
-        LD A, (hitind)
-        CALL DispA
-        LD IY, tileMapData +917
-        LD A, (riseCnt)
-        CALL DispA
-        LD IY, tileMapData +957
-        LD A, (IX +strucBalloon.dirH)
-        CALL DispA
-        LD IY, tileMapData +997
-        LD A, (hitLind)
-        CALL DispA
-        LD IY, tileMapData +1037
-        LD A, (hitRind)
-        CALL DispA
+        CP bounceRow
+        JR NC, onLand                               ; only feet / lower body touching
 
-        LD A, (hitind1)                     
-        ld b, a                             ; store lowest pixel line with hit
-        ld a, (hitind)                     
-        ld c, a                             ; store highest pixel line with hit
-
-
-       ld a, b
-       cp 22
-       jp nc, .diagnosticsEnd              ; skip if hitind1 >= 22
- 
-        cp c
-        jp z, .diagnosticsEnd               ; skip if hitind1 = hitind, e.g. 6/6 etc.
-
-.diagnostics1
-        ; show Paul in-situ (with collision) if hit
-        ld a, (hitind1)
-        AND A
-        CALL NZ, showPaul1
-
-        ; wait for space if hit
-        LD A, (hitind1)
-        AND A
-        CALL NZ, keySpace
-
-.diagnosticsEnd
-        LD A, (hitind)                              ; get collision occured indicator
-        AND A                                       ; is it non 0
-        JP Z, paulFinish                            ; branch over if 0
-
-; here xy coords have been updated and we have detected a collision
-; has occured
-; Paul is 32 pixels tall, 0 top - 31 bottom
-; the very top pixel lines are blank, his head starts at pixel line 6
-; hitind1 is the lowest pixel line with collision
-; hitind  is the highest pixel line with collision
-tileCollision
-        LD A, (hitind1)                             ; get lowest pixel line of collision
-        CP 22                                       ; bottom ish of Paul & pogo stick?
-        JP nc, bounce                               ; if A >= 22, this is a bounce
-
-tileCollision1
-        CP 8
-        JR NC, .notHeadHit                          ; A >= 8, dont decrease health if so
-
-        LD A, (healthDelay)                         ; get current health delay
-        SUB 3                                       ; decrease it
+;--------------------------------------------------------------------------
+; onHeadOrWallHit - head bump or body against a wall
+;   - head (rows < headRow) costs health
+;   - step back one pixel sideways and undo this pixel's vertical move
+;   - a rising Paul stops rising; a falling Paul keeps falling
+;   - a hit on several rows means a wall: stop sideways movement
+;--------------------------------------------------------------------------
+onHeadOrWallHit
+        CP headRow                                  ; A = hitind1
+        JR NC, .noDamage
+        LD A, (healthDelay)
+        SUB headHitDamage
         AND %00001111
-        LD (healthDelay), A                         ; and save it
-        CP 0                                        ; was it 0
-        JR NZ, .notHeadHit                          ; branch over if not
-        LD A, healthDefault                         ; get default health delay
-        LD (healthDelay), A                         ; and reset health delay
-        LD A, (health)                              ; get current health
-        DEC A                                       ; decrease it
-        LD (health), A                              ; and save it
-
-.notHeadHit
+        LD (healthDelay), A
+        JR NZ, .noDamage
+        LD A, healthDefault
+        LD (healthDelay), A
+        LD HL, health
+        DEC (HL)
+.noDamage
         LD A, soundHithead
         CALL playsound
 
-        CALL reverseX1                              ; reverse previous left/right
+        CALL stepBackX
+        LD HL, lastMoveY                            ; undo this pixel's vertical move
+        LD A, (IX +strucBalloon.lowY)
+        SUB (HL)
+        LD (IX +strucBalloon.lowY), A
 
-        LD A, (lastStep)                            ; undo this sub-step's vertical pixel
-        OR A
-        JR Z, .hr3                                  ; no vertical move this sub-step
+        LD A, (paulSpeedY +1)
         BIT 7, A
-        JR NZ, .hr2
-.hr1
-        DEC (IX +strucBalloon.lowY)                 ; was moving down, move back up
-        JR .hr3
-.hr2
-        INC (IX +strucBalloon.lowY)                 ; was moving up, move back down
-.hr3
-        XOR A
-        LD (pendStep), A                            ; drop any second sub-step
-        LD A, (velY+1)
-        BIT 7, A
-        JR NZ, .keepFall                            ; falling: keep speed (no wall stick)
+        JR NZ, .keepFalling                         ; falling: keep speed (no wall stick)
         LD HL, 0
-        LD (velY), HL                               ; rising: head bump stops the rise
+        LD (paulSpeedY), HL                         ; rising (or at apex): stop the rise
         XOR A
-        LD (fracY), A
-.keepFall
+        LD (subPixelY), A
+.keepFalling
+        LD A, (hitind)
+        LD B, A
+        LD A, (hitind1)
+        CP B
+        RET Z                                       ; single row: head bump only
+        XOR A
+        LD (spriteDirH), A                          ; several rows: wall, drop straight down
+        RET
 
-        LD A, (hitind)                              ; get highest pixel line of collision
-        ld b, a                                     ; save it
-        ld a, (hitind1)                             ; get lowest pixel line of collision
-        cp b                                        ; same as highest?
-        jp z, paulFinish                            ; jump if so, e.g. 6/6, 7/7 etc
+;--------------------------------------------------------------------------
+; stepBackX - move Paul one pixel away from the way he is facing
+;--------------------------------------------------------------------------
+stepBackX
+        LD A, (manPat)
+        CP facingLeft
+        JR Z, movePaulRight
+        CP facingRight
+        JR Z, movePaulLeft
+        RET
 
-;
-; hitind / hitind1 are different. This probably means we've jumped into a wall or something similar
-; in which case, stop horizontal movement, so we just fall vertically down
-;
-        XOR A                                       ; A=0
-        LD (spriteDirH), A                          ; set direction to 0 (none)
-        JP paulFinish                               ; done
-
-;
-; any collision with pixel line 22+ of Paul is treated as a bounce
-;
-bounce
-        LD A, (strengthInd)
+;--------------------------------------------------------------------------
+; onLand - feet hit something: bounce
+;--------------------------------------------------------------------------
+onLand
+        LD A, (strengthInd)                         ; bounce sound length grows with power
         ADD A, A
         ADD A, A
         AND %00111111
         OR 3
-        LD (sound3Dur), A                           ; set duration related to strength
+        LD (sound3Dur), A
         LD A, soundBounce
         CALL playsound
 
-        DEC (IX +strucBalloon.lowY)                 ; move Paul up
+        DEC (IX +strucBalloon.lowY)                 ; lift Paul clear of the floor
+        CALL startBounce
+        ; fall through: direction can only change at a bounce
 
-        CALL setRiseCnt                             ; set launch velocity and lrDelay
-        CALL keyProcess                             ; it's a bounce, so allow Paul to change horizontal direction
-        XOR A
-        LD (pendStep), A                            ; bounce cancels any second sub-step
-
-paulFinish
-        LD A, (pendStep)                            ; second pixel still to move this tick?
-        OR A
-        JR Z, paulFinish1
-        LD B, A
-        XOR A
-        LD (pendStep), A
-        BIT 7, B
-        JR NZ, .pendDown
-        DEC (IX +strucBalloon.lowY)                 ; second pixel up
-        LD A, -1
-        JR .pendGo
-.pendDown
-        INC (IX +strucBalloon.lowY)                 ; second pixel down
-        LD A, 1
-.pendGo
-        LD (lastStep), A
-        JP leftrightEnd                             ; collision check this pixel too
-paulFinish1
-        CALL showPaul1                              ; show Paul sprite
-
-        CALL chkSpriteCollision                     ; check balloon collision
-        CALL showHealth                             ; update health bar display
-        LD A, (health)                              ; get health value
-        AND A                                       ; see if it's zero
-        RET NZ                                      ; return if not
-        SCF                                         ; otherwise set carry flag
-        RET                                         ; and return, dead
-
-keyProcess
-; this should only be called on a bounce
-        LD A, (features)                            ; get screen features
-        BIT 0, A                                    ; check keyboard is on
-        RET NZ                                      ; return if not
-
-keyLeft
-        LD BC, $dffe                                ; keys Y U I O P
-        IN A, (C)                                   ; read port
-        BIT 1, A                                    ; check for "o"
-        JR NZ, keyRight                             ; branch if not pressed
-
-        LD A, facingLeft                            ; Paul is not facing left
-        LD (manPat), A                              ; set it
-        LD A, left                                  ; Paul is now moving left
-        LD (spriteDirH), A                          ; set it
-
-keyRight
-        LD BC, $dffe                                ; keys Y U I O P
-        IN A, (C)                                   ; read port
-        BIT 0, A                                    ; check for "p"
-        JR NZ, keyEnd                               ; branch if not pressed
-
-        LD A, facingRight                           ; Paul is now facing right
-        LD (manPat), A                              ; set it
-        LD A, right                                 ; Paul is now moving right
-        LD (spriteDirH), A                          ; set it
-
-keyEnd
+;--------------------------------------------------------------------------
+; readDirectionKeys - O = left, P = right (P wins if both); no key = keep going
+;--------------------------------------------------------------------------
+readDirectionKeys
+        LD A, (features)
+        BIT 0, A
+        RET NZ                                      ; keyboard disabled (splash screen)
+        LD BC, keyPortOP
+        IN A, (C)
+        LD E, A                                     ; keep the row for both tests
+        BIT keyBitO, E
+        JR NZ, .checkP
+        LD A, facingLeft
+        LD (manPat), A
+        LD A, left
+        LD (spriteDirH), A
+.checkP
+        BIT keyBitP, E
+        RET NZ
+        LD A, facingRight
+        LD (manPat), A
+        LD A, right
+        LD (spriteDirH), A
         RET
 
-movePaulRight
-        LD HL, (spriteX)                            ; get current X co-ord
-        INC HL                                      ; add 1
-        LD (spriteX), HL                            ; save it
-        RET
-
-movePaulLeft
-        LD HL, (spriteX)                            ; get current X co-ord
-        DEC HL                                      ; minus 1
-        LD (spriteX), HL                            ; set it
-        RET
-
-;
-; on a collision, we back Paul away from the direction he was facing
-;
-reverseX1
-        LD A, (manPat)                              ; get Paul's sprite pattern and hence facing direction
-        CP facingLeft                               ; is he facing left
-        JR Z, movePaulRight                         ; if so, move him right
-        CP facingRight                              ; is he facing right
-        JR Z, movePaulLeft                          ; if so move him left
-        RET
-
-setRiseCnt
-; on a bounce (and paulInit): launch velocity from launchTable, L/R delay from bounceTable row 2
+;--------------------------------------------------------------------------
+; startBounce - launch Paul upwards at the current power (also from paulInit)
+;   speed from bounceSpeedTable, sideways step delay from bounceTable row 2
+;--------------------------------------------------------------------------
+startBounce
         LD A, (strengthInd)
         ADD A, A
-        LD HL, launchTable
+        LD HL, bounceSpeedTable
         ADD HL, A
         LD E, (HL)
         INC HL
         LD D, (HL)
-        LD (velY), DE
+        LD (paulSpeedY), DE
         XOR A
-        LD (fracY), A
-        LD (pendStep), A
+        LD (subPixelY), A
         LD A, (strengthInd)
-        LD HL, bounceTable +16                      ; left/right delay row
+        LD HL, bounceTable +16
         ADD HL, A
         LD A, (HL)
         LD (leftRightCount), A
