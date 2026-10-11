@@ -126,7 +126,7 @@ boxRed          EQU 11
 boxBlank        EQU 12
 
 
-maxLevel        EQU 8
+maxLevel        EQU 12
 splashLevel     EQU 9
 
 tPower1         DB   6, 0, "p", 255

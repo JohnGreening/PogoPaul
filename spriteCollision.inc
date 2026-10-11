@@ -1,16 +1,18 @@
+;
+; this file handles all the sprite on sprite collisions
+; we only check to see what Paul collides with
+;
 chkSpriteCollision
 ; get Paul's 1bit bitmap depending on his direction
-        LD A, (manPat)                      ; get current sprite pattern
-        LD HL, paulbmpL                     ; default 1bit bitmap to Paul facing left
-        AND A                               ; test current sprite pattern
-        JR NZ, storePaulbmp                 ; branch if facing left 
-        LD HL, paulbmpR                     ; otherwise set 1bit bitmap to Paul facing right
+        LD A, (manPat)                              ; get current sprite pattern
+        LD HL, paulbmpL                             ; default 1 bit bitmap to Paul facing left
+        AND A                                       ; test current sprite pattern
+        JR NZ, storePaulbmp                         ; branch if facing left 
+        LD HL, paulbmpR                             ; otherwise set 1bit bitmap to Paul facing right
 storePaulbmp
-        LD (manBitmap), HL                  ; store correct 1bit bitmap
+        LD (manBitmap), HL                          ; store correct 1 bit bitmap
 
-chkCollide1
-; point to start of balloon data
-        LD IX, balloonSpr
+        LD IX, balloonSpr                           ; point to start of the "balloon" data
 
 chkSprite
 ; for each "balloon" or until collision is detected
@@ -18,17 +20,17 @@ chkSprite
 ; - call collision check routine
 ; - check if collision (carry set) and loop if not, otherwise return IX = balloon hit
 
-        LD A, (IX +strucBalloon.pattern)
-        CP 255
-        RET Z
+        LD A, (IX +strucBalloon.pattern)            ; get the sprite pattern of the "balloon" to check
+        CP 255                                      ; is it the end marker
+        RET Z                                       ; return if so
 
-        CP Sblank
-        CALL NZ, chkSprite1
-        RET C                               ; exit if carry, i.e. hit detected
+        CP Sblank                                   ; is it a blank sprite
+        CALL NZ, chkSprite1                         ; call check routine if not
+        RET C                                       ; exit here if carry set, i.e. hit detected
         
-        LD DE, strucBalloon
-        ADD IX, DE
-        JR chkSprite
+        LD DE, strucBalloon                         ; get ready to point to next balloon
+        ADD IX, DE                                  ; add the offset
+        JR chkSprite                                ; branch back for next "balloon"
 
 collideAction
 DW noAction, $00                            ; sprite  0
@@ -80,16 +82,16 @@ chkSprite1
         JP (HL)
 
 collideSkull
-        CALL CS1
-        RET NC
+        CALL CS1                                    ; do the collision check
+        RET NC                                      ; return for next balloon if no collision
 
-        LD A, soundHitskull
-        CALL playsound
-        LD A, (healthDelay)
+        LD A, soundHitskull                         ; ready the skull hit sound
+        CALL playsound                              ; play it
+        LD A, (healthDelay)                         ; adjust health iro hit
         DEC A
         LD (healthDelay), A
         RET NZ
-        LD A, (healthDefault)
+        LD A, healthDefault
         LD (healthDelay), A
         LD A, (health)
         DEC A
@@ -183,13 +185,13 @@ noAction
 ; Paul and the "balloon" sprite being tested
 ;---------------------------------------------------------
 CS1
-        LD (spriteBitmap), BC               ; save off location of 1bit bitmap
-        LD (collisionInx), IX               ; and the balloon in question
+        LD (spriteBitmap), BC                       ; save off location of 1 bit bitmap
+        LD (collisionInx), IX                       ; and the balloon in question
 doYDiff
-        LD A, (spriteY)                     ; get Paul's Y coord
-        LD B, (IX +strucBalloon.lowY)           ; get Balloon Y coord
-        SUB B                               ; A= Paul Y - Balloon Y
-        JR C, spriteBelowPaul               ; if carry BalloonY > Paul Y
+        LD A, (spriteY)                             ; get Paul's Y coord
+        LD B, (IX +strucBalloon.lowY)               ; get Balloon Y coord
+        SUB B                                       ; A= Paul Y - Balloon Y
+        JR C, spriteBelowPaul                       ; if carry BalloonY > Paul Y
 
 spriteAbovePaul
         ; Balloon Y <= Paul Y, i.e. +ve diff
@@ -238,26 +240,26 @@ spriteBelowPaul
         LD C, A
 
 doXDiff
-        LD HL, (spriteX)
-        LD E, (IX +strucBalloon.lowX)
+        LD HL, (spriteX)                            ; get Pauls X coord
+        LD E, (IX +strucBalloon.lowX)               ; get "balloon" X coord
         LD D, (IX +strucBalloon.highX)
 
-        OR A
-        SBC HL, DE
-        JR C, .negDelta
+        OR A                                        ; clear carry flag
+        SBC HL, DE                                  ; Paul X = Paul X - balloon X
+        JR C, .negDelta                             ; branch if balloon X was > Paul X
 
 .posDelta
-        LD A, H
-        OR A
-        RET NZ
+        LD A, H                                     ; get the X delta high byte
+        OR A                                        ; set if it is zero (delta < 255)
+        RET NZ                                      ; return if not, no point in testing further since sprites are too far apart
 
-        LD A, L
-        CP 16
-        RET NC
+        LD A, L                                     ; get the low byte
+        CP 16                                       ; see if within 16 pixels
+        RET NC                                      ; return if not, no point in testing further since sprites are >16 pixels apart
 
-        LD B, A
-        OR A
-        JR balloonLeftOfPaul
+        LD B, A                                     ; save the X pixel delta in B
+        OR A                                        ; reset the carry flag
+        JR balloonLeftOfPaul                        ; branch
 
 .negDelta
         LD A, H
@@ -284,7 +286,7 @@ BROP
         LD L, (IX +1)
         LD D, (IY +0)
         LD E, (IY +1)
-        BSRA DE, B
+        BSRL DE, B
         LD A, H
         AND D
         JR NZ, myhit

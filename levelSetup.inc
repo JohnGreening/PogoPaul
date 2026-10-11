@@ -190,6 +190,10 @@ levelUp
 
         LD A, (LEVEL)
         INC A
+        CP maxLevel
+        jr c, .lvOK
+        LD A, 1
+.lvOK:
         LD (LEVEL), A
 
         CALL createLevel
@@ -538,7 +542,7 @@ endProg
         OUT (C), A
         LD D, 7
         LD BC, AYSelect
-        OUT (C), A
+        OUT (C), D
         LD A, 255
         LD BC, AYrw
         OUT (C), A

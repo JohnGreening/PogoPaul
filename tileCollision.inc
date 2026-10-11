@@ -253,12 +253,13 @@ b3x5loop:
         PUSH DE                             ; save the char down counter
         PUSH HL                             ; save the tileBmpMap pointer
 
-        LD A, (IY +0)                       ; get tile here
-        LD DE, tilebmp                      ; get base of udgs for tiles
-        ADD A, A                            ; multiply by 8
-        ADD A, A                            ; to point to udg we want
-        ADD A, A
-        ADD DE, A                           ; DE now points to UDG
+        LD A, (IY +0)                       ; get tile here                         19t
+        LD DE, tilebmp                      ; get base of udgs for tiles            10t
+        ADD A, A                            ; multiply by 8                         4t
+        ADD A, A                            ; to point to udg we want               4t
+        ADD A, A                            ;                                       4t
+        ADD DE, A                           ; DE now points to UDG                  8t
+        
 
         LD A, (DE)                          ; get pixel line 1
         LD (HL), A                          ; put in map

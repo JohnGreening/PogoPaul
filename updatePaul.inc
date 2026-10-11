@@ -18,7 +18,7 @@ showPaul
 keyDown
         LD BC, $fefe                                ; read keyboard up/down
         IN A, (C)                                   ; read port
-        BIT 1, A                                    ; check "a" key
+        BIT 1, A                                    ; check "z" key
         JR NZ, keyUp                                ; branch if not pressed
 
         ; get strength value and branch if already 0
@@ -31,7 +31,7 @@ keyDown
 keyUp
         LD BC, $fdfe                                ; read keyboard up/down
         IN A, (C)                                   ; read port
-        BIT 0, A                                    ; check for "q"
+        BIT 0, A                                    ; check "a" key
         JR NZ, showPaul0                            ; branch if not pressed
         
         ; get strength value and branch if already 15
